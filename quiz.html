@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>クレーンスペック特訓ツール（ラフター＆オルター最新版）</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    background-color: #0a092d;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    -webkit-text-size-adjust: 100%;
+  }
+  .card {
+    background: #2e3856;
+    padding: 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 680px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h2 { margin: 0; font-size: 20px; }
+  .header-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .btn-header {
+    border: none;
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+    transition: opacity 0.2s;
+  }
+  .btn-header:hover { opacity: 0.85; }
+  .btn-sync { background: #23c552; }
+  .btn-settings { background: #586380; }
+
+  .save-indicator {
+    font-size: 11px;
+    color: #23c552;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  /* 階層セット管理エリア */
+  .set-manager {
+    background: #1a1d28;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #586380;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .hierarchy-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hierarchy-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #939bb4;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .select-line {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  select {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: 1px solid #586380;
+    background: #2e3856;
+    color: #fff;
+    outline: none;
+  }
+  .btn-sub-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .set-action-btn {
+    background: #3b4668;
+    color: #fff;
+    border: none;
+    padding: 6px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .set-action-btn:hover { background: #4c5a85; }
+  .reorder-modal-btn {
+    background: #4255ff;
+    color: #fff;
+    font-weight: bold;
+  }
+  .reorder-modal-btn:hover {
+    background: #2f3ec4;
+  }
+  .pdf-btn {
+    background: #10b981;
+  }
+  .pdf-btn:hover {
+    background: #059669;
+  }
+
+  /* 参考リンクエリア */
+  .link-manager-block {
+    border-top: 1px dashed #3b4668;
+    padding-top: 8px;
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .link-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .link-add-btn {
+    background: #23c552;
+    color: #fff;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .link-add-btn:hover { background: #1ea343; }
+  .link-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .link-badge {
+    background: #2e3856;
+    border: 1px solid #586380;
+    border-radius: 16px;
+    padding: 3px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .link-badge a {
+    color: #63b3ed;
+    text-decoration: none;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link-badge a:hover {
+    text-decoration: underline;
+  }
+  .link-badge button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity 0.2s, color 0.2s;
+  }
+  .link-badge button:hover {
+    opacity: 1;
+  }
+  .link-badge .link-edit-btn:hover {
+    color: #63b3ed;
+  }
+  .link-badge .link-del-btn:hover {
+    color: #ff6b6b;
+  }
+  
+  /* 単語入力グリッド */
+  .word-list-container {
+    max-height: 340px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    padding-right: 4px;
+  }
+  .word-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+  .row-number {
+    width: 26px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: #939bb4;
+    flex-shrink: 0;
+  }
+  .word-row textarea {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border-radius: 6px;
+    border: 1px solid #586380;
+    background: #1a1d28;
+    color: #fff;
+    outline: none;
+    box-sizing: border-box;
+    resize: none;
+    min-height: 38px;
+    overflow-y: hidden;
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .word-row textarea:focus { border-color: #4255ff; }
+  
+  /* 行アクションボタン */
+  .row-btn-group {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .mini-btn {
+    background: #3b4668;
+    color: #fff;
+    border: 1px solid #586380;
+    border-radius: 6px;
+    width: 28px;
+    height: 38px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .mini-btn:hover {
+    background: #4255ff;
+    border-color: #4255ff;
+  }
+  .insert-btn {
+    font-size: 14px;
+  }
+  .del-btn {
+    background: #ff4757;
+    border-color: #ff4757;
+  }
+  .del-btn:hover {
+    background: #e04040;
+    border-color: #e04040;
+  }
+
+  .sub-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  .sub-btn {
+    flex: 1;
+    min-width: 95px;
+    background: #3b4668;
+    color: #fff;
+    border: none;
+    padding: 8px 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .sub-btn:hover { background: #4c5a85; }
+
+  /* 一括貼り付けエリア */
+  .paste-area {
+    margin-bottom: 15px;
+    background: #1a1d28;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px dashed #586380;
+  }
+  .paste-area textarea {
+    width: 100%;
+    height: 60px;
+    background: transparent;
+    color: #fff;
+    border: none;
+    outline: none;
+    font-size: 12px;
+    resize: none;
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* 設定エリア */
+  .setting-box {
+    margin: 15px 0;
+    background: #1a1d28;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #586380;
+  }
+  .setting-label {
+    font-size: 12px;
+    color: #939bb4;
+    margin-bottom: 8px;
+    display: block;
+    font-weight: bold;
+  }
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  /* クイズ画面 */
+  .status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #939bb4;
+    margin-bottom: 15px;
+  }
+  .quiz-ctrl-group {
+    display: flex;
+    gap: 6px;
+  }
+  .quiz-sub-btn {
+    background: #3b4668;
+    color: #fff;
+    border: 1px solid #586380;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .quiz-sub-btn:hover {
+    background: #4c5a85;
+  }
+  .prompt {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 15px 0 25px 0;
+    text-align: center;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+  #answer-input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 16px;
+    line-height: 1.4;
+    border-radius: 6px;
+    border: 2px solid #586380;
+    background: #1a1d28;
+    color: #fff;
+    box-sizing: border-box;
+    outline: none;
+    resize: none;
+    min-height: 48px;
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  #answer-input:focus { border-color: #4255ff; }
+
+  .btn {
+    background: #4255ff;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .btn:hover { background: #2f3ec4; }
+  .feedback {
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    min-height: 52px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .override-correct-btn {
+    background: #10b981;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .override-correct-btn:hover {
+    background: #059669;
+  }
+  .error-text { color: #ff6b6b; font-weight: bold; }
+  .user-answer-container {
+    color: #cbd5e0;
+    font-size: 14px;
+    margin: 6px 0;
+    display: inline-block;
+    background: #1a1d28;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid #3b4668;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+  }
+  .char-match {
+    color: #23c552;
+    font-weight: bold;
+  }
+  .char-mismatch {
+    color: #ff6b6b;
+    font-weight: bold;
+    background: rgba(255, 107, 107, 0.15);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .correction { color: #23c552; font-weight: bold; font-size: 18px; }
+
+  /* ===== 並び替え用ポップアップモーダル ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  .modal-box {
+    background: #2e3856;
+    border: 1px solid #586380;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 580px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #586380;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .modal-action-bar {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 6px;
+  }
+  .modal-add-btn {
+    background: #23c552;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+  }
+  .modal-add-btn:hover {
+    background: #1ea343;
+  }
+  .modal-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 4px;
+    margin-bottom: 12px;
+  }
+  .modal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1a1d28;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #3b4668;
+    gap: 8px;
+  }
+  .modal-item.active-item {
+    border-color: #4255ff;
+    background: #232838;
+  }
+  .modal-item-title {
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .modal-item-btns {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .item-arrow-btn {
+    background: #3b4668;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .item-arrow-btn:hover { background: #4255ff; }
+  .item-arrow-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #2a3147;
+  }
+  .item-insert-btn {
+    background: #23c552;
+    font-weight: bold;
+    font-size: 13px;
+  }
+  .item-insert-btn:hover {
+    background: #1ea343;
+  }
+  .item-edit-btn {
+    background: #3b4668;
+    font-size: 12px;
+  }
+  .item-edit-btn:hover {
+    background: #4c5a85;
+  }
+  .item-del-btn {
+    background: #ff4757;
+    font-size: 12px;
+  }
+  .item-del-btn:hover {
+    background: #e04040;
+  }
+
+  /* 同期設定モーダル */
+  .sync-modal-input {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: 1px solid #586380;
+    background: #1a1d28;
+    color: #fff;
+    outline: none;
+    box-sizing: border-box;
+    margin: 10px 0 16px 0;
+  }
+
+  /* フッター */
+  .footer-sync-info {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #3b4668;
+    font-size: 11px;
+    color: #939bb4;
+    text-align: center;
+  }
+
+  /* ===== 印刷・PDF出力専用スタイル ===== */
+  #print-area {
+    display: none;
+  }
+
+  @media print {
+    body {
+      background: #ffffff !important;
+      color: #000000 !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+    .card, .modal-overlay {
+      display: none !important;
+    }
+    #print-area {
+      display: block !important;
+      width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      padding: 10mm 15mm;
+      box-sizing: border-box;
+    }
+    .print-header {
+      border-bottom: 2px solid #333;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .print-title {
+      font-size: 20pt;
+      font-weight: bold;
+      color: #1a1a2e;
+      margin: 0;
+    }
+    .print-meta {
+      font-size: 10pt;
+      color: #555;
+    }
+    .print-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .print-table th, .print-table td {
+      border: 1px solid #bbb;
+      padding: 6px 10px;
+      font-size: 10pt;
+      line-height: 1.3;
+      vertical-align: top;
+    }
+    .print-table th {
+      background-color: #f0f2f8;
+      font-weight: bold;
+      text-align: left;
+    }
+    .print-table th.num-col, .print-table td.num-col {
+      width: 32px;
+      text-align: center;
+      color: #666;
+    }
+    .print-table th.def-col, .print-table td.def-col {
+      width: 55%;
+    }
+    .print-table th.term-col, .print-table td.term-col {
+      width: 40%;
+      font-weight: bold;
+    }
+    .print-table tr:nth-child(even) td {
+      background-color: #fafbfc;
+    }
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- 設定・登録画面 -->
+<div class="card" id="setup-screen">
+  <div class="header-row">
+    <div>
+      <h2>筆記特訓</h2>
+      <span class="save-indicator" id="save-indicator">✓ 保存済み</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-header btn-sync" onclick="syncWithCloud()">🔄 同期</button>
+      <button class="btn-header btn-settings" onclick="openSyncSettingsModal()">⚙️ 設定</button>
+    </div>
+  </div>
+
+  <!-- 階層セット管理 -->
+  <div class="set-manager">
+    <!-- 親階層：フォルダ -->
+    <div class="hierarchy-block">
+      <span class="hierarchy-label">📁 親カテゴリ（フォルダ）</span>
+      <div class="select-line">
+        <select id="folder-select" onchange="switchFolder(this.value)"></select>
+        <div class="btn-sub-group">
+          <button class="set-action-btn reorder-modal-btn" title="親カテゴリの順番を一覧で並び替え・追加・名前変更・削除" onclick="openReorderModal('folder')">↕ 整理</button>
+          <button class="set-action-btn" onclick="createNewFolder()">＋ 作成</button>
+          <button class="set-action-btn" onclick="renameCurrentFolder()">✏️</button>
+          <button class="set-action-btn" style="color:#ff6b6b;" onclick="deleteCurrentFolder()">🗑️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 子階層：セット -->
+    <div class="hierarchy-block">
+      <span class="hierarchy-label">📄 子カテゴリ（学習セット）</span>
+      <div class="select-line">
+        <select id="set-select" onchange="switchSet(this.value)"></select>
+        <div class="btn-sub-group">
+          <button class="set-action-btn reorder-modal-btn" title="セットの順番を一覧で並び替え・追加・名前変更・削除" onclick="openReorderModal('set')">↕ 整理</button>
+          <button class="set-action-btn" onclick="createNewSet()">＋ 作成</button>
+          <button class="set-action-btn" onclick="renameCurrentSet()">✏️</button>
+          <button class="set-action-btn" onclick="moveCurrentSet()" title="フォルダ間移動">⇄ 移動</button>
+          <button class="set-action-btn pdf-btn" onclick="exportToPDF()">📄 PDF</button>
+          <button class="set-action-btn" style="color:#ff6b6b;" onclick="deleteCurrentSet()">🗑️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 参考リンク管理エリア -->
+    <div class="link-manager-block">
+      <div class="link-header-row">
+        <span class="hierarchy-label">🔗 参考リンク（仕様書・カタログなど）</span>
+        <button class="link-add-btn" onclick="addSetLink()">＋ リンク追加</button>
+      </div>
+      <div class="link-list" id="link-list-container"></div>
+    </div>
+  </div>
+  
+  <div class="word-list-container" id="word-list"></div>
+
+  <div class="sub-actions">
+    <button class="sub-btn" onclick="prependRow()">⬆ 先頭に追加</button>
+    <button class="sub-btn" onclick="addRow('', '', null, true)">⬇ 末尾に追加</button>
+    <button class="sub-btn reorder-modal-btn" style="background:#4255ff;" onclick="openReorderModal('word')">↕ 単語整理</button>
+    <button class="sub-btn" onclick="togglePasteArea()">📋 一括貼付</button>
+    <button class="sub-btn" style="color: #ff6b6b;" onclick="clearAllRows()">全消去</button>
+  </div>
+
+  <div class="paste-area hidden" id="paste-area">
+    <textarea id="bulk-paste-input" placeholder="Excel/スプレッドシートからコピーした2列、または「定義 [タブ] 用語」を貼り付けてください"></textarea>
+    <button class="sub-btn" style="width: 100%; margin-top: 5px; background: #4255ff;" onclick="applyBulkPaste()">マスに反映する</button>
+  </div>
+
+  <div class="setting-box">
+    <span class="setting-label">出題モード設定</span>
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="quizMode" value="def-to-term" checked onchange="saveCurrentSet()">
+        <b>定義</b> ➔ <b>用語</b> を入力
+      </label>
+      <label>
+        <input type="radio" name="quizMode" value="term-to-def" onchange="saveCurrentSet()">
+        <b>用語</b> ➔ <b>定義</b> を入力
+      </label>
+    </div>
+  </div>
+
+  <button class="btn" onclick="startQuiz()">筆記モードを開始する</button>
+
+  <div class="footer-sync-info" id="sync-status-indicator">ローカル保存済み</div>
+</div>
+
+<!-- クイズ画面 -->
+<div class="card hidden" id="quiz-screen">
+  <div class="status">
+    <div>
+      <span id="progress-text">残り: 0</span> &nbsp;|&nbsp; 
+      <span id="streak-text">連続正解: 0 / 3</span>
+    </div>
+    <div class="quiz-ctrl-group">
+      <button class="quiz-sub-btn" onclick="resetCurrentQuiz()" title="このセットの特訓を最初からやり直す">↺ リセット</button>
+      <button class="quiz-sub-btn" onclick="backToSetup()" title="学習セット・モード変更画面に戻る">✕ 中断</button>
+    </div>
+  </div>
+  
+  <div class="prompt" id="question-text">---</div>
+  
+  <textarea id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力してEnter（空欄で未回答提出）..."></textarea>
+  
+  <div class="feedback" id="feedback-text"></div>
+</div>
+
+<!-- クリア画面 -->
+<div class="card hidden" id="result-screen">
+  <h2 style="text-align: center; color: #23c552;">🎉 完全マスター達成！</h2>
+  <p style="text-align: center;">すべての項目で3連続正解を達成しました！</p>
+  <button class="btn" onclick="restartQuiz()">もう一度最初から特訓する</button>
+  <button class="btn" style="background: #586380; margin-top: 10px;" onclick="backToSetup()">セット・モードを変更する</button>
+</div>
+
+<!-- 並び替え・編集モーダル -->
+<div class="modal-overlay hidden" id="reorder-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">順序の並び替え</h3>
+      <button class="mini-btn del-btn" style="height:26px; width:26px;" onclick="closeReorderModal()">✕</button>
+    </div>
+    <div class="modal-action-bar" id="modal-action-bar"></div>
+    <div class="modal-list" id="modal-item-list"></div>
+    <button class="sub-btn" style="background:#4255ff; padding:10px;" onclick="closeReorderModal()">完了</button>
+  </div>
+</div>
+
+<!-- 同期設定モーダル -->
+<div class="modal-overlay hidden" id="sync-settings-modal">
+  <div class="modal-box" style="max-height: auto;">
+    <div class="modal-header">
+      <h3>⚙️ クラウド同期設定</h3>
+      <button class="mini-btn del-btn" style="height:26px; width:26px;" onclick="closeSyncSettingsModal()">✕</button>
+    </div>
+    <p style="font-size: 13px; color: #939bb4; line-height: 1.5; margin: 0 0 8px 0;">
+      Google Apps Scriptで発行した「ウェブアプリのURL」を貼り付けると、PCとスマホでクレーン特訓データを自動同期できます。
+    </p>
+    <input type="text" id="crane-gas-url-input" class="sync-modal-input" placeholder="https://script.google.com/macros/s/.../exec">
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="sub-btn" style="flex:none; padding:8px 14px;" onclick="closeSyncSettingsModal()">キャンセル</button>
+      <button class="sub-btn" style="flex:none; padding:8px 16px; background:#23c552;" onclick="saveSyncSettings()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 印刷 / PDF用エリア -->
+<div id="print-area">
+  <div class="print-header">
+    <h1 class="print-title" id="print-set-title">単語帳</h1>
+    <div class="print-meta" id="print-set-meta">単語数: 0 | 発行日: 2026/01/01</div>
+  </div>
+  <table class="print-table">
+    <thead>
+      <tr>
+        <th class="num-col">No.</th>
+        <th class="def-col">定義</th>
+        <th class="term-col">用語</th>
+      </tr>
+    </thead>
+    <tbody id="print-table-body"></tbody>
+  </table>
+</div>
+
+<script>
+const STORAGE_KEY_FOLDERS = "quizlet_master_data";
+const STORAGE_KEY_ACTIVE_FOLDER_ID = "quizlet_master_active_folder_id";
+const STORAGE_KEY_ACTIVE_SET_ID = "quizlet_master_active_set_id";
+const GAS_URL_KEY = "crane_quiz_gas_sync_url";
+
+/* ラフター用：全30項目 */
+const ROUGHTER_DEFINITIONS = [
+  "最大吊上げ重量（t）",
+  "全長（mm）",
+  "全幅（ボディ面）（mm）",
+  "全高（mm）",
+  "最大アウトリガー幅（mm）",
+  "中間アウトリガー幅（mm）",
+  "最小アウトリガー幅（mm）",
+  "アウトリガーフロート寸法（mm×mm or φ）",
+  "旋回芯～アウトリガー芯（左右方向）（mm）",
+  "旋回芯～右前アウトリガー芯（前後方向）（mm）",
+  "旋回芯～左前アウトリガー芯（前後方向）（mm）",
+  "前後アウトリガー距離（右, 左）",
+  "鉄板サイズ（mm×mm）",
+  "軸数（〇軸）",
+  "最小ブーム長（m）",
+  "最大ブーム長（m）",
+  "最小ジブ長（m）",
+  "最大ジブ長（m）",
+  "全重量（kg）",
+  "前軸重（kg）",
+  "後軸重（kg）",
+  "旋回半径（mm）",
+  "CW無し旋回半径（mm）",
+  "CW有り旋回半径（mm）",
+  "最大フック（〇〇t, 質量）",
+  "その他フック（〇〇t, 質量）",
+  "最小フック（〇〇t, 質量）",
+  "メイン最大フック過巻距離（mm, ※フック上面～）",
+  "メイン最小フック過巻距離（mm, ※フック上面～）",
+  "ジブ最大フック過巻距離（mm, ※フック上面～）"
+];
+
+/* オルター用：全36項目 */
+const ALLTER_DEFINITIONS = [
+  "最大吊上げ重量（t）",
+  "全長（mm）",
+  "全幅（ボディ面）（mm）",
+  "全高（mm）",
+  "キャリア分解（有／無）",
+  "ブーム重量（t）",
+  "ジブ重量（t）",
+  "旋回体重量（t）",
+  "最大アウトリガー幅（mm）",
+  "中間アウトリガー幅（mm）",
+  "最小アウトリガー幅（mm）",
+  "アウトリガーフロート（mm×mm or φ）",
+  "旋回芯～アウトリガー芯（左右方向）（mm）",
+  "旋回芯～右前アウトリガー芯（前後方向）（mm）",
+  "旋回芯～左前アウトリガー芯（前後方向）（mm）",
+  "前後アウトリガー距離（右, 左）",
+  "鉄板サイズ（mm×mm）",
+  "軸数（〇軸）",
+  "最小ブーム長（m）",
+  "最大ブーム長（m）",
+  "最小ジブ長（m）",
+  "最大ジブ長（m）",
+  "全重量（kg）",
+  "前軸重（kg）",
+  "後軸重（kg）",
+  "CW無し旋回半径（mm）",
+  "CW有り旋回半径（mm）",
+  "CW最大重量（t）",
+  "CW運搬台数（〇台）",
+  "フルウエイト重量（t）",
+  "最大フック（〇〇t, 質量）",
+  "その他フック（〇〇t, 質量）",
+  "最小フック（〇〇t, 質量）",
+  "メイン最大フック過巻距離（mm, ※フック上面～）",
+  "メイン最小フック過巻距離（mm, ※フック上面～）",
+  "ジブ最大フック過巻距離（mm, ※フック上面～）"
+];
+
+/* ラフター21機種 */
+const PRESET_ROUGHTER_MODELS = [
+  "KATO SL-850RfⅡ",
+  "KATO SL-750Rf-2",
+  "KATO SL-800Ri",
+  "TADANO GR-700N-1",
+  "TADANO GR-700N-2",
+  "KATO SL-600RFⅢ",
+  "TADANO GR600N-3",
+  "KATO SL-500Rf",
+  "TADANO GR-250N-2",
+  "TADANO GR-250N-4",
+  "TADANO GR-250N-5",
+  "KATO SR-250R",
+  "KATO SR-250Ri",
+  "KATO SR-250Rf",
+  "KATO SR-250Rf2",
+  "TADANO GR-160N-2",
+  "TADANO GR-160N-5",
+  "KOBELCO RK160",
+  "KOBELCO RK160-7",
+  "KATO MR-130Ri",
+  "KATO MR-130Rf2"
+];
+
+/* オルター13機種 */
+const PRESET_ALLTER_MODELS = [
+  "TADANO AR-7000N-1",
+  "TADANO AR-5500M",
+  "KATO KA-4000R",
+  "TADANO ATF400G-6",
+  "KATO KA-3000R",
+  "KATO KA-2200R",
+  "KATO KA-2200",
+  "TADANO ATF220G-5",
+  "LIEBHERR LTM1160NX",
+  "DEMAG AC130-5",
+  "KATO KA-1300R",
+  "KATO KA-1100R",
+  "TADANO ATF100G-4"
+];
+
+let foldersData = [];
+let activeFolderId = null;
+let activeSetId = null;
+
+let currentWords = [];
+let currentItem = null;
+let retypingMode = false;
+let currentMode = "def-to-term";
+let saveTimeout = null;
+let currentModalType = null;
+let previousStreakBeforeError = 0;
+
+window.onload = function() {
+  initStorage();
+  if (localStorage.getItem(GAS_URL_KEY)) {
+    syncWithCloud(true);
+  }
+};
+
+function initStorage() {
+  const legacyKeys = [
+    "quizlet_master_data",
+    "quizlet_folders_crane_all_v9",
+    "quizlet_folders_crane_all_v8",
+    "quizlet_folders_crane_all_v7",
+    "quizlet_folders_crane_all_v6",
+    "quizlet_folders_merged_all_v5",
+    "quizlet_folders_roughter_preset_v4",
+    "quizlet_folders_crane_v3",
+    "quizlet_folders_crane_v2",
+    "quizlet_folders_crane_v1",
+    "quizlet_folders_v3",
+    "quizlet_multi_sets_v2"
+  ];
+
+  let recoveredData = null;
+  for (const k of legacyKeys) {
+    const raw = localStorage.getItem(k);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].sets) {
+          const hasValues = parsed.some(f => f.sets && f.sets.some(s => s.items && s.items.some(i => i.term && i.term.trim() !== "")));
+          if (hasValues) {
+            recoveredData = parsed;
+            break;
+          }
+          if (!recoveredData) recoveredData = parsed;
+        }
+      } catch (e) {}
+    }
+  }
+
+  const defaultRoughterSets = PRESET_ROUGHTER_MODELS.map((modelName, index) => ({
+    id: "set_r_" + (index + 1),
+    name: modelName,
+    mode: "def-to-term",
+    links: [],
+    items: ROUGHTER_DEFINITIONS.map(def => ({ def, term: "" }))
+  }));
+
+  const defaultAllterSets = PRESET_ALLTER_MODELS.map((modelName, index) => ({
+    id: "set_a_" + (index + 1),
+    name: modelName,
+    mode: "def-to-term",
+    links: [],
+    items: ALLTER_DEFINITIONS.map(def => ({ def, term: "" }))
+  }));
+
+  foldersData = [
+    { id: "f_roughter", name: "ラフター", sets: defaultRoughterSets },
+    { id: "f_allter", name: "オルター", sets: defaultAllterSets },
+    { id: "f_crawler", name: "クローラ", sets: [{ id: "s_c_sample", name: "クローラクレーン", mode: "def-to-term", links: [], items: [{ def: "最大定格総荷重", term: "" }, { def: "主ブーム長さ", term: "" }] }] },
+    { id: "f_food", name: "食べ物", sets: [{ id: "s_food_1", name: "果物", mode: "term-to-def", links: [], items: [{ def: "apple", term: "リンゴ" }, { def: "banana", term: "バナナ" }] }] }
+  ];
+
+  if (recoveredData) {
+    recoveredData.forEach(oldFolder => {
+      if (!oldFolder.sets) return;
+      oldFolder.sets.forEach(oldSet => {
+        foldersData.forEach(newFolder => {
+          const matchedSet = newFolder.sets.find(s => s.name === oldSet.name);
+          if (matchedSet) {
+            if (oldSet.links) matchedSet.links = oldSet.links;
+            if (oldSet.items) {
+              oldSet.items.forEach(oldItem => {
+                if (oldItem.term && oldItem.term.trim() !== "") {
+                  let targetDefName = oldItem.def;
+                  if (targetDefName === "前高（mm）") targetDefName = "全高（mm）";
+                  if (targetDefName === "アウトリガーフロート（mm×mm or φ）" && newFolder.name === "ラフター") {
+                    targetDefName = "アウトリガーフロート寸法（mm×mm or φ）";
+                  }
+                  if (targetDefName === "センター～アウトリガー芯（mm）") {
+                    targetDefName = "旋回芯～アウトリガー芯（左右方向）（mm）";
+                  }
+
+                  const targetItem = matchedSet.items.find(i => i.def === targetDefName);
+                  if (targetItem) {
+                    targetItem.term = oldItem.term;
+                  } else {
+                    matchedSet.items.push({ def: targetDefName, term: oldItem.term });
+                  }
+                }
+              });
+            }
+          }
+        });
+      });
+    });
+  }
+
+  saveAllDataToStorage(false);
+
+  const savedFolderId = localStorage.getItem(STORAGE_KEY_ACTIVE_FOLDER_ID);
+  const savedSetId = localStorage.getItem(STORAGE_KEY_ACTIVE_SET_ID);
+
+  activeFolderId = (savedFolderId && foldersData.some(f => f.id === savedFolderId))
+    ? savedFolderId
+    : foldersData[0].id;
+
+  const currentFolder = getCurrentFolder();
+  if (currentFolder && currentFolder.sets.length > 0) {
+    activeSetId = (savedSetId && currentFolder.sets.some(s => s.id === savedSetId))
+      ? savedSetId
+      : currentFolder.sets[0].id;
+  } else {
+    activeSetId = null;
+  }
+
+  renderFolderSelect();
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function getCurrentFolder() {
+  return foldersData.find(f => f.id === activeFolderId) || foldersData[0];
+}
+
+function getCurrentSet() {
+  const folder = getCurrentFolder();
+  return folder ? folder.sets.find(s => s.id === activeSetId) : null;
+}
+
+function renderFolderSelect() {
+  const select = document.getElementById('folder-select');
+  select.innerHTML = '';
+  foldersData.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.innerText = f.name;
+    if (f.id === activeFolderId) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function renderSetSelect() {
+  const select = document.getElementById('set-select');
+  select.innerHTML = '';
+  const curFolder = getCurrentFolder();
+
+  if (!curFolder || curFolder.sets.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = "";
+    opt.innerText = "（セットがありません）";
+    select.appendChild(opt);
+    return;
+  }
+
+  curFolder.sets.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.innerText = s.name;
+    if (s.id === activeSetId) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function switchFolder(newFolderId) {
+  saveCurrentSet(false);
+  activeFolderId = newFolderId;
+  localStorage.setItem(STORAGE_KEY_ACTIVE_FOLDER_ID, activeFolderId);
+
+  const folder = getCurrentFolder();
+  if (folder && folder.sets.length > 0) {
+    activeSetId = folder.sets[0].id;
+  } else {
+    activeSetId = null;
+  }
+  localStorage.setItem(STORAGE_KEY_ACTIVE_SET_ID, activeSetId);
+
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function switchSet(newSetId) {
+  if (!newSetId) return;
+  saveCurrentSet(false);
+  activeSetId = newSetId;
+  localStorage.setItem(STORAGE_KEY_ACTIVE_SET_ID, activeSetId);
+  loadCurrentSetUI();
+}
+
+/* ===== 参考リンク処理 ===== */
+function renderSetLinks() {
+  const container = document.getElementById('link-list-container');
+  container.innerHTML = '';
+  const cur = getCurrentSet();
+  if (!cur || !cur.links || cur.links.length === 0) {
+    container.innerHTML = '<span style="color:#6b7280; font-size:11px;">登録されたリンクはありません</span>';
+    return;
+  }
+
+  cur.links.forEach((link, idx) => {
+    const badge = document.createElement('div');
+    badge.className = 'link-badge';
+    badge.innerHTML = `
+      <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(link.url)}">🌐 ${escapeHtml(link.title || link.url)}</a>
+      <button class="link-edit-btn" title="表示名を変更" onclick="renameSetLink(${idx})">✏️</button>
+      <button class="link-del-btn" title="リンクを削除" onclick="deleteSetLink(${idx})">✕</button>
+    `;
+    container.appendChild(badge);
+  });
+}
+
+function addSetLink() {
+  const cur = getCurrentSet();
+  if (!cur) return;
+  if (!cur.links) cur.links = [];
+
+  const title = prompt("リンクの表示名（例: カタログ、仕様書PDF）:", "");
+  if (title === null) return;
+  let url = prompt("リンク先URL（https://...）:", "https://");
+  if (!url || !url.trim()) return;
+
+  cur.links.push({
+    title: title.trim() || url.trim(),
+    url: url.trim()
+  });
+
+  saveAllDataToStorage(true);
+  renderSetLinks();
+}
+
+function renameSetLink(index) {
+  const cur = getCurrentSet();
+  if (!cur || !cur.links || !cur.links[index]) return;
+
+  const currentLink = cur.links[index];
+  const newTitle = prompt("リンクの表示名を変更:", currentLink.title);
+  if (newTitle === null) return;
+
+  currentLink.title = newTitle.trim() || currentLink.url;
+  saveAllDataToStorage(true);
+  renderSetLinks();
+}
+
+function deleteSetLink(index) {
+  const cur = getCurrentSet();
+  if (!cur || !cur.links || !cur.links[index]) return;
+  if (!confirm(`「${cur.links[index].title}」を削除しますか？`)) return;
+
+  cur.links.splice(index, 1);
+  saveAllDataToStorage(true);
+  renderSetLinks();
+}
+
+/* ===== 並び替え・編集モーダル処理 ===== */
+function openReorderModal(type) {
+  saveCurrentSet(false);
+  currentModalType = type;
+  const modal = document.getElementById('reorder-modal');
+  const title = document.getElementById('modal-title');
+  const actionBar = document.getElementById('modal-action-bar');
+  actionBar.innerHTML = '';
+
+  if (type === 'folder') {
+    title.textContent = "📁 親カテゴリの整理・追加・編集";
+    const addBtn = document.createElement('button');
+    addBtn.className = 'modal-add-btn';
+    addBtn.textContent = "＋ 新規親カテゴリを先頭に追加";
+    addBtn.onclick = () => createNewFolderInModal();
+    actionBar.appendChild(addBtn);
+  } else if (type === 'set') {
+    const curFolder = getCurrentFolder();
+    title.textContent = `📄 【${curFolder.name}】内のセット整理・追加・編集`;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'modal-add-btn';
+    addBtn.textContent = "＋ 新規セットを先頭に追加";
+    addBtn.onclick = () => createNewSetInModal(null);
+    actionBar.appendChild(addBtn);
+  } else if (type === 'word') {
+    const cur = getCurrentSet();
+    title.textContent = `📝 【${cur ? cur.name : '単語'}】内の整理・追加・編集`;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'modal-add-btn';
+    addBtn.textContent = "＋ 新規単語を先頭に追加";
+    addBtn.onclick = () => createNewWordInModal(null);
+    actionBar.appendChild(addBtn);
+  }
+
+  renderModalItems();
+  modal.classList.remove('hidden');
+}
+
+function closeReorderModal() {
+  document.getElementById('reorder-modal').classList.add('hidden');
+  renderFolderSelect();
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function renderModalItems() {
+  const list = document.getElementById('modal-item-list');
+  list.innerHTML = '';
+
+  let items = [];
+  let currentActive = null;
+
+  if (currentModalType === 'folder') {
+    items = foldersData;
+    currentActive = activeFolderId;
+  } else if (currentModalType === 'set') {
+    items = getCurrentFolder().sets;
+    currentActive = activeSetId;
+  } else if (currentModalType === 'word') {
+    const cur = getCurrentSet();
+    items = cur ? cur.items : [];
+  }
+
+  if (!items || items.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color:#939bb4; padding:20px 0;">項目がありません</div>';
+    return;
+  }
+
+  items.forEach((item, index) => {
+    const div = document.createElement('div');
+    const isActive = (currentModalType !== 'word') && (item.id === currentActive);
+    div.className = `modal-item ${isActive ? 'active-item' : ''}`;
+    
+    let displayLabel = "";
+    if (currentModalType === 'word') {
+      const termStr = item.term || "(未入力)";
+      const defStr = item.def || "(未入力)";
+      displayLabel = `${index + 1}. <b>${escapeHtml(defStr)}</b> : ${escapeHtml(termStr)}`;
+    } else {
+      displayLabel = `${index + 1}. ${escapeHtml(item.name)}`;
+    }
+
+    let extraBtnsHtml = '';
+    if (currentModalType === 'folder') {
+      extraBtnsHtml = `
+        <button class="item-arrow-btn item-edit-btn" title="親カテゴリ名を変更" onclick="renameFolderInModal(${index})">✏️</button>
+        <button class="item-arrow-btn item-insert-btn" title="この下に親カテゴリを追加" onclick="createNewFolderInModal(${index})">＋</button>
+        <button class="item-arrow-btn item-del-btn" title="親カテゴリを削除" onclick="deleteFolderInModal(${index})">🗑️</button>
+      `;
+    } else if (currentModalType === 'set') {
+      extraBtnsHtml = `
+        <button class="item-arrow-btn item-edit-btn" title="セット名を変更" onclick="renameSetInModal(${index})">✏️</button>
+        <button class="item-arrow-btn item-insert-btn" title="この下に新しいセットを追加" onclick="createNewSetInModal(${index})">＋</button>
+        <button class="item-arrow-btn item-del-btn" title="このセットを削除" onclick="deleteSetInModal(${index})">🗑️</button>
+      `;
+    } else if (currentModalType === 'word') {
+      extraBtnsHtml = `
+        <button class="item-arrow-btn item-edit-btn" title="定義と用語を編集" onclick="editWordInModal(${index})">✏️</button>
+        <button class="item-arrow-btn item-insert-btn" title="この下に単語を追加" onclick="createNewWordInModal(${index})">＋</button>
+        <button class="item-arrow-btn item-del-btn" title="この単語を削除" onclick="deleteWordInModal(${index})">🗑️</button>
+      `;
+    }
+
+    div.innerHTML = `
+      <div class="modal-item-title">${displayLabel}</div>
+      <div class="modal-item-btns">
+        ${extraBtnsHtml}
+        <button class="item-arrow-btn" ${index === 0 ? 'disabled' : ''} onclick="shiftModalItem(${index}, -1)">▲</button>
+        <button class="item-arrow-btn" ${index === items.length - 1 ? 'disabled' : ''} onclick="shiftModalItem(${index}, 1)">▼</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function shiftModalItem(index, direction) {
+  const targetIndex = index + direction;
+  let items = [];
+
+  if (currentModalType === 'folder') {
+    items = foldersData;
+  } else if (currentModalType === 'set') {
+    items = getCurrentFolder().sets;
+  } else if (currentModalType === 'word') {
+    const cur = getCurrentSet();
+    items = cur ? cur.items : [];
+  }
+
+  if (targetIndex < 0 || targetIndex >= items.length) return;
+
+  const temp = items[index];
+  items[index] = items[targetIndex];
+  items[targetIndex] = temp;
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function getFolderDefaultDefinitions(folderName) {
+  if (folderName === "ラフター") {
+    return ROUGHTER_DEFINITIONS;
+  } else if (folderName === "オルター") {
+    return ALLTER_DEFINITIONS;
+  }
+  return [];
+}
+
+function createNewFolderInModal(afterIndex = null) {
+  const name = prompt("新しい親カテゴリ（フォルダ）の名前を入力:", "新しいカテゴリ");
+  if (!name || !name.trim()) return;
+
+  const defaultDefs = getFolderDefaultDefinitions(name.trim());
+  const newFolder = {
+    id: "f_" + Date.now(),
+    name: name.trim(),
+    sets: [
+      {
+        id: "s_" + Date.now(),
+        name: "新規セット",
+        mode: defaultDefs.length > 0 ? "def-to-term" : "term-to-def",
+        links: [],
+        items: defaultDefs.map(def => ({ def, term: "" }))
+      }
+    ]
+  };
+
+  if (afterIndex !== null && afterIndex >= 0) {
+    foldersData.splice(afterIndex + 1, 0, newFolder);
+  } else {
+    foldersData.unshift(newFolder);
+  }
+
+  activeFolderId = newFolder.id;
+  activeSetId = newFolder.sets[0].id;
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function renameFolderInModal(index) {
+  if (!foldersData[index]) return;
+  const targetFolder = foldersData[index];
+  const newName = prompt("フォルダ名を変更:", targetFolder.name);
+  if (!newName || !newName.trim()) return;
+
+  targetFolder.name = newName.trim();
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function deleteFolderInModal(index) {
+  if (foldersData.length <= 1) {
+    return alert("親カテゴリは最低1つ必要です。削除できません。");
+  }
+  const targetFolder = foldersData[index];
+  if (!confirm(`フォルダ「${targetFolder.name}」とその中のセットをすべて削除しますか？`)) return;
+
+  const isDeletingActive = (targetFolder.id === activeFolderId);
+  foldersData.splice(index, 1);
+
+  if (isDeletingActive) {
+    activeFolderId = foldersData[0].id;
+    const nextFolder = getCurrentFolder();
+    activeSetId = (nextFolder && nextFolder.sets.length > 0) ? nextFolder.sets[0].id : null;
+  }
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function createNewSetInModal(afterIndex = null) {
+  const curFolder = getCurrentFolder();
+  const name = prompt(`【${curFolder.name}】内に作成するセット名（機種名）:`, "新規セット");
+  if (!name || !name.trim()) return;
+
+  const defs = getFolderDefaultDefinitions(curFolder.name);
+  const items = defs.length > 0
+    ? defs.map(def => ({ def, term: "" }))
+    : [];
+
+  const newSet = {
+    id: "s_" + Date.now(),
+    name: name.trim(),
+    mode: defs.length > 0 ? "def-to-term" : "term-to-def",
+    links: [],
+    items: items
+  };
+
+  if (afterIndex !== null && afterIndex >= 0) {
+    curFolder.sets.splice(afterIndex + 1, 0, newSet);
+  } else {
+    curFolder.sets.unshift(newSet);
+  }
+
+  activeSetId = newSet.id;
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function renameSetInModal(index) {
+  const curFolder = getCurrentFolder();
+  if (!curFolder || !curFolder.sets[index]) return;
+  const targetSet = curFolder.sets[index];
+  const newName = prompt("セット名を変更:", targetSet.name);
+  if (!newName || !newName.trim()) return;
+
+  targetSet.name = newName.trim();
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function deleteSetInModal(index) {
+  const curFolder = getCurrentFolder();
+  if (!curFolder || !curFolder.sets[index]) return;
+
+  if (curFolder.sets.length <= 1) {
+    return alert("フォルダ内にセットは最低1つ必要です。削除できません。");
+  }
+
+  const targetSet = curFolder.sets[index];
+  if (!confirm(`セット「${targetSet.name}」を削除しますか？`)) return;
+
+  const isDeletingActive = (targetSet.id === activeSetId);
+  curFolder.sets.splice(index, 1);
+
+  if (isDeletingActive) {
+    activeSetId = curFolder.sets[0].id;
+  }
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function createNewWordInModal(afterIndex = null) {
+  const cur = getCurrentSet();
+  if (!cur) return;
+
+  const def = prompt("定義を入力:", "");
+  if (def === null) return;
+  const term = prompt("用語を入力:", "");
+  if (term === null) return;
+
+  const newWord = { def: def.trim(), term: term.trim() };
+
+  if (afterIndex !== null && afterIndex >= 0) {
+    cur.items.splice(afterIndex + 1, 0, newWord);
+  } else {
+    cur.items.unshift(newWord);
+  }
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function editWordInModal(index) {
+  const cur = getCurrentSet();
+  if (!cur || !cur.items[index]) return;
+
+  const item = cur.items[index];
+  const newDef = prompt("定義を編集:", item.def);
+  if (newDef === null) return;
+  const newTerm = prompt("用語を編集:", item.term);
+  if (newTerm === null) return;
+
+  item.def = newDef.trim();
+  item.term = newTerm.trim();
+
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function deleteWordInModal(index) {
+  const cur = getCurrentSet();
+  if (!cur || !cur.items[index]) return;
+
+  const item = cur.items[index];
+  const name = item.def || item.term || "この単語";
+  if (!confirm(`「${name}」を削除しますか？`)) return;
+
+  cur.items.splice(index, 1);
+  saveAllDataToStorage(true);
+  renderModalItems();
+}
+
+function createNewSet() {
+  const curFolder = getCurrentFolder();
+  const name = prompt(`【${curFolder.name}】内に作成するセット名:`, "新規セット");
+  if (!name || !name.trim()) return;
+
+  saveCurrentSet(false);
+
+  const defs = getFolderDefaultDefinitions(curFolder.name);
+  const items = defs.length > 0
+    ? defs.map(def => ({ def, term: "" }))
+    : [];
+
+  const newSet = {
+    id: "s_" + Date.now(),
+    name: name.trim(),
+    mode: defs.length > 0 ? "def-to-term" : "term-to-def",
+    links: [],
+    items: items
+  };
+
+  curFolder.sets.unshift(newSet);
+  activeSetId = newSet.id;
+
+  saveAllDataToStorage(true);
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function createNewFolder() {
+  const name = prompt("新しい親カテゴリ（フォルダ）の名前を入力:", "新しいカテゴリ");
+  if (!name || !name.trim()) return;
+
+  saveCurrentSet(false);
+
+  const defaultDefs = getFolderDefaultDefinitions(name.trim());
+  const newFolder = {
+    id: "f_" + Date.now(),
+    name: name.trim(),
+    sets: [
+      {
+        id: "s_" + Date.now(),
+        name: "新規セット",
+        mode: defaultDefs.length > 0 ? "def-to-term" : "term-to-def",
+        links: [],
+        items: defaultDefs.map(def => ({ def, term: "" }))
+      }
+    ]
+  };
+
+  foldersData.unshift(newFolder);
+  activeFolderId = newFolder.id;
+  activeSetId = newFolder.sets[0].id;
+
+  saveAllDataToStorage(true);
+  renderFolderSelect();
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function renameCurrentFolder() {
+  const cur = getCurrentFolder();
+  if (!cur) return;
+  const newName = prompt("フォルダ名を変更:", cur.name);
+  if (!newName || !newName.trim()) return;
+
+  cur.name = newName.trim();
+  saveAllDataToStorage(true);
+  renderFolderSelect();
+}
+
+function deleteCurrentFolder() {
+  if (foldersData.length <= 1) {
+    return alert("親カテゴリは最低1つ必要です。削除できません。");
+  }
+  const cur = getCurrentFolder();
+  if (!confirm(`フォルダ「${cur.name}」とその中のセットをすべて削除しますか？`)) return;
+
+  foldersData = foldersData.filter(f => f.id !== activeFolderId);
+  activeFolderId = foldersData[0].id;
+  const nextFolder = getCurrentFolder();
+  activeSetId = (nextFolder && nextFolder.sets.length > 0) ? nextFolder.sets[0].id : null;
+
+  saveAllDataToStorage(true);
+  renderFolderSelect();
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function renameCurrentSet() {
+  const cur = getCurrentSet();
+  if (!cur) return;
+  const newName = prompt("セット名を変更:", cur.name);
+  if (!newName || !newName.trim()) return;
+
+  cur.name = newName.trim();
+  saveAllDataToStorage(true);
+  renderSetSelect();
+}
+
+function moveCurrentSet() {
+  const curSet = getCurrentSet();
+  if (!curSet) return;
+  if (foldersData.length <= 1) {
+    return alert("移動先のフォルダが他にありません。");
+  }
+
+  const folderNames = foldersData.map((f, i) => `${i + 1}: ${f.name}`).join("\n");
+  const choice = prompt(`移動先のフォルダ番号を入力してください:\n${folderNames}`);
+  const idx = parseInt(choice, 10) - 1;
+
+  if (isNaN(idx) || idx < 0 || idx >= foldersData.length) {
+    return;
+  }
+
+  const targetFolder = foldersData[idx];
+  if (targetFolder.id === activeFolderId) {
+    return alert("現在のフォルダと同じです。");
+  }
+
+  const curFolder = getCurrentFolder();
+  curFolder.sets = curFolder.sets.filter(s => s.id !== activeSetId);
+
+  targetFolder.sets.unshift(curSet);
+  activeFolderId = targetFolder.id;
+  activeSetId = curSet.id;
+
+  saveAllDataToStorage(true);
+  renderFolderSelect();
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+function deleteCurrentSet() {
+  const curFolder = getCurrentFolder();
+  if (curFolder.sets.length <= 1) {
+    return alert("フォルダ内にセットは最低1つ必要です。");
+  }
+  const cur = getCurrentSet();
+  if (!confirm(`セット「${cur.name}」を削除しますか？`)) return;
+
+  curFolder.sets = curFolder.sets.filter(s => s.id !== activeSetId);
+  activeSetId = curFolder.sets[0].id;
+
+  saveAllDataToStorage(true);
+  renderSetSelect();
+  loadCurrentSetUI();
+}
+
+/* UIロードと保存 */
+function updateRowNumbers() {
+  const rows = document.querySelectorAll('.word-row');
+  rows.forEach((row, idx) => {
+    const numEl = row.querySelector('.row-number');
+    if (numEl) numEl.textContent = idx + 1;
+  });
+}
+
+function loadCurrentSetUI() {
+  const cur = getCurrentSet();
+  const container = document.getElementById('word-list');
+  container.innerHTML = '';
+
+  renderSetLinks();
+
+  if (!cur) {
+    addRow();
+    return;
+  }
+
+  const radio = document.querySelector(`input[name="quizMode"][value="${cur.mode || 'def-to-term'}"]`);
+  if (radio) radio.checked = true;
+
+  if (!cur.items || cur.items.length === 0) {
+    addRow();
+  } else {
+    cur.items.forEach(w => addRow(w.def, w.term, null, false));
+    updateRowNumbers();
+  }
+}
+
+function saveCurrentSet(showIndicator = true) {
+  const cur = getCurrentSet();
+  if (!cur) return;
+
+  const rows = document.querySelectorAll('.word-row');
+  const items = [];
+
+  rows.forEach(row => {
+    const def = row.querySelector('.input-def').value.trim();
+    const term = row.querySelector('.input-term').value.trim();
+    if (def || term) {
+      items.push({ def, term });
+    }
+  });
+
+  cur.items = items;
+  const selectedMode = document.querySelector('input[name="quizMode"]:checked');
+  if (selectedMode) {
+    cur.mode = selectedMode.value;
+  }
+
+  saveAllDataToStorage(true);
+
+  if (showIndicator) {
+    const indicator = document.getElementById('save-indicator');
+    indicator.style.opacity = '1';
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+      indicator.style.opacity = '0';
+    }, 1000);
+  }
+}
+
+function saveAllDataToStorage(triggerCloud = true) {
+  localStorage.setItem(STORAGE_KEY_FOLDERS, JSON.stringify(foldersData));
+  localStorage.setItem(STORAGE_KEY_ACTIVE_FOLDER_ID, activeFolderId);
+  localStorage.setItem(STORAGE_KEY_ACTIVE_SET_ID, activeSetId);
+
+  if (triggerCloud && localStorage.getItem(GAS_URL_KEY)) {
+    pushToCloud();
+  }
+}
+
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+function handleColumnTabNavigation(e, textarea, colClass) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const currentRow = textarea.closest('.word-row');
+    const targetRow = e.shiftKey ? currentRow.previousElementSibling : currentRow.nextElementSibling;
+    if (targetRow) {
+      const targetInput = targetRow.querySelector(`.${colClass}`);
+      if (targetInput) {
+        targetInput.focus();
+        targetInput.select();
+      }
+    }
+  }
+}
+
+function createRowElement(defVal = "", termVal = "") {
+  const row = document.createElement('div');
+  row.className = 'word-row';
+  row.innerHTML = `
+    <span class="row-number"></span>
+    <textarea class="input-def" placeholder="定義" rows="1" onkeydown="handleColumnTabNavigation(event, this, 'input-def')" oninput="autoResize(this); saveCurrentSet();">${defVal}</textarea>
+    <textarea class="input-term" placeholder="用語" rows="1" onkeydown="handleColumnTabNavigation(event, this, 'input-term')" oninput="autoResize(this); saveCurrentSet();">${termVal}</textarea>
+    <div class="row-btn-group">
+      <button class="mini-btn" title="上へ移動" onclick="moveSingleRow(this, -1)">▲</button>
+      <button class="mini-btn" title="下へ移動" onclick="moveSingleRow(this, 1)">▼</button>
+      <button class="mini-btn insert-btn" title="この下に1行挿入" onclick="insertRowAfter(this)">＋</button>
+      <button class="mini-btn del-btn" title="行を削除" onclick="deleteRow(this)">✕</button>
+    </div>
+  `;
+  return row;
+}
+
+function moveSingleRow(btn, direction) {
+  const row = btn.closest('.word-row');
+  const container = document.getElementById('word-list');
+  if (direction === -1) {
+    const prev = row.previousElementSibling;
+    if (prev) {
+      container.insertBefore(row, prev);
+      updateRowNumbers();
+      saveCurrentSet();
+    }
+  } else if (direction === 1) {
+    const next = row.nextElementSibling;
+    if (next) {
+      container.insertBefore(next, row);
+      updateRowNumbers();
+      saveCurrentSet();
+    }
+  }
+}
+
+function prependRow() {
+  const container = document.getElementById('word-list');
+  const row = createRowElement('', '');
+  
+  if (container.firstChild) {
+    container.insertBefore(row, container.firstChild);
+  } else {
+    container.appendChild(row);
+  }
+
+  const textareas = row.querySelectorAll('textarea');
+  textareas.forEach(ta => autoResize(ta));
+
+  const defInput = row.querySelector('.input-def');
+  if (defInput) defInput.focus();
+
+  container.scrollTop = 0;
+  updateRowNumbers();
+  saveCurrentSet();
+}
+
+function addRow(defVal = "", termVal = "", targetRow = null, shouldSave = true) {
+  const container = document.getElementById('word-list');
+  const row = createRowElement(defVal, termVal);
+
+  if (targetRow && targetRow.nextSibling) {
+    container.insertBefore(row, targetRow.nextSibling);
+  } else if (targetRow) {
+    container.appendChild(row);
+  } else {
+    container.appendChild(row);
+  }
+
+  const textareas = row.querySelectorAll('textarea');
+  textareas.forEach(ta => autoResize(ta));
+
+  if (targetRow) {
+    const defInput = row.querySelector('.input-def');
+    if (defInput) defInput.focus();
+  }
+
+  updateRowNumbers();
+  if (shouldSave) saveCurrentSet();
+}
+
+function insertRowAfter(btn) {
+  const row = btn.closest('.word-row');
+  addRow("", "", row, true);
+}
+
+function deleteRow(btn) {
+  const row = btn.closest('.word-row');
+  row.remove();
+  const container = document.getElementById('word-list');
+  if (container.querySelectorAll('.word-row').length === 0) {
+    addRow();
+  }
+  updateRowNumbers();
+  saveCurrentSet();
+}
+
+function clearAllRows() {
+  if (confirm('このセットの項目をすべて消去しますか？')) {
+    document.getElementById('word-list').innerHTML = '';
+    addRow();
+    saveCurrentSet();
+  }
+}
+
+function togglePasteArea() {
+  const area = document.getElementById('paste-area');
+  area.classList.toggle('hidden');
+}
+
+function applyBulkPaste() {
+  const text = document.getElementById('bulk-paste-input').value.trim();
+  if (!text) return;
+
+  const lines = text.split('\n');
+  const container = document.getElementById('word-list');
+  container.innerHTML = '';
+
+  lines.forEach(line => {
+    let parts = line.includes('\t') ? line.split('\t') : line.split(',');
+    if (parts.length >= 2) {
+      addRow(parts[0].trim(), parts[1].trim(), null, false);
+    }
+  });
+
+  updateRowNumbers();
+  saveCurrentSet();
+  document.getElementById('bulk-paste-input').value = '';
+  document.getElementById('paste-area').classList.add('hidden');
+}
+
+/* PDF発行 */
+function exportToPDF() {
+  saveCurrentSet(false);
+  const curFolder = getCurrentFolder();
+  const cur = getCurrentSet();
+
+  if (!cur || !cur.items || cur.items.length === 0) {
+    alert("発行する項目がありません。");
+    return;
+  }
+
+  document.getElementById('print-set-title').textContent = `${curFolder.name} / ${cur.name}`;
+  const today = new Date().toLocaleDateString('ja-JP');
+  document.getElementById('print-set-meta').textContent = `登録数: ${cur.items.length} 項目 | 発行日: ${today}`;
+
+  const tbody = document.getElementById('print-table-body');
+  tbody.innerHTML = '';
+
+  cur.items.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="num-col">${index + 1}</td>
+      <td class="def-col">${escapeHtml(item.def || '')}</td>
+      <td class="term-col">${escapeHtml(item.term || '')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  window.print();
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/\n/g, "<br>");
+}
+
+function generateDiffHtml(userAns, targetAns) {
+  if (!userAns) {
+    return '<span class="char-mismatch">（未入力）</span>';
+  }
+
+  const uChars = Array.from(userAns);
+  const tChars = Array.from(targetAns);
+  let html = '';
+
+  for (let i = 0; i < uChars.length; i++) {
+    const uChar = uChars[i];
+    const tChar = tChars[i];
+
+    const isMatch = (tChar !== undefined) && (uChar.toLowerCase() === tChar.toLowerCase());
+
+    if (isMatch) {
+      html += `<span class="char-match">${escapeHtml(uChar)}</span>`;
+    } else {
+      html += `<span class="char-mismatch">${escapeHtml(uChar)}</span>`;
+    }
+  }
+
+  return html;
+}
+
+function startQuiz() {
+  saveCurrentSet(false);
+  const cur = getCurrentSet();
+  
+  if (!cur || !cur.items || cur.items.length === 0) {
+    return alert('定義と用語を入力してください');
+  }
+
+  const validItems = cur.items.filter(i => i.term && i.term.trim() !== "");
+  if (validItems.length === 0) {
+    return alert('用語（正解となる仕様値や数値）が入力されている項目がありません。数値を入力してから開始してください。');
+  }
+
+  currentWords = validItems.map(item => ({ ...item, streak: 0 }));
+  currentMode = cur.mode || 'def-to-term';
+
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  
+  nextQuestion();
+}
+
+function resetCurrentQuiz() {
+  if (confirm("現在の特訓の進捗をリセットして、最初からやり直しますか？")) {
+    restartQuiz();
+  }
+}
+
+function nextQuestion() {
+  const activeWords = currentWords.filter(w => w.streak < 3);
+  
+  if (activeWords.length === 0) {
+    document.getElementById('quiz-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.remove('hidden');
+    return;
+  }
+
+  currentItem = activeWords[Math.floor(Math.random() * activeWords.length)];
+  retypingMode = false;
+
+  const input = document.getElementById('answer-input');
+
+  if (currentMode === 'term-to-def') {
+    document.getElementById('question-text').innerText = currentItem.term;
+    input.placeholder = "定義を入力してEnter（空欄で未回答提出）...";
+  } else {
+    document.getElementById('question-text').innerText = currentItem.def;
+    input.placeholder = "用語を入力してEnter（空欄で未回答提出）...";
+  }
+  
+  document.getElementById('progress-text').innerText = `残り: ${activeWords.length}`;
+  document.getElementById('streak-text').innerText = `連続正解: ${currentItem.streak} / 3`;
+  
+  input.value = '';
+  input.disabled = false;
+  input.style.borderColor = '#586380';
+  autoResize(input);
+  input.focus();
+  
+  document.getElementById('feedback-text').innerHTML = '';
+}
+
+document.getElementById('answer-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleInput();
+  }
+});
+
+document.getElementById('answer-input').addEventListener('input', function() {
+  autoResize(this);
+});
+
+function getTargetAnswer() {
+  return (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
+}
+
+function handleInput() {
+  const input = document.getElementById('answer-input');
+  const userAns = input.value.trim();
+  const targetAns = getTargetAnswer();
+  const feedback = document.getElementById('feedback-text');
+
+  if (userAns && userAns.toLowerCase() === targetAns.toLowerCase()) {
+    if (retypingMode) {
+      nextQuestion();
+    } else {
+      currentItem.streak += 1;
+      input.style.borderColor = '#23c552';
+      setTimeout(nextQuestion, 250);
+    }
+  } else {
+    previousStreakBeforeError = currentItem.streak;
+    currentItem.streak = 0;
+    retypingMode = true;
+    input.value = '';
+    input.style.borderColor = '#ff6b6b';
+    autoResize(input);
+
+    const statusMsg = userAns ? 'ミス！正しく打ち直してください' : '未回答！正解を入力して進んでください';
+    const highlightedAns = generateDiffHtml(userAns, targetAns);
+
+    feedback.innerHTML = `
+      <span class="error-text">${statusMsg}</span><br>
+      <div class="user-answer-container">あなたの回答: ${highlightedAns}</div><br>
+      正解: <span class="correction">${escapeHtml(targetAns)}</span><br>
+      <button class="override-correct-btn" onclick="overrideAsCorrect()">✓ 私は正解でした（正解にして次へ進む）</button>
+    `;
+  }
+}
+
+function overrideAsCorrect() {
+  if (!currentItem) return;
+  currentItem.streak = previousStreakBeforeError + 1;
+  nextQuestion();
+}
+
+function restartQuiz() {
+  currentWords.forEach(w => w.streak = 0);
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.remove('hidden');
+  nextQuestion();
+}
+
+function backToSetup() {
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('quiz-screen').classList.add('hidden');
+  document.getElementById('setup-screen').classList.remove('hidden');
+  loadCurrentSetUI();
+}
+
+/* ===== クラウド同期（Google Apps Script連携） ===== */
+function openSyncSettingsModal() {
+  document.getElementById('crane-gas-url-input').value = localStorage.getItem(GAS_URL_KEY) || "";
+  document.getElementById('sync-settings-modal').classList.remove('hidden');
+}
+
+function closeSyncSettingsModal() {
+  document.getElementById('sync-settings-modal').classList.add('hidden');
+}
+
+function saveSyncSettings() {
+  const url = document.getElementById('crane-gas-url-input').value.trim();
+  localStorage.setItem(GAS_URL_KEY, url);
+  closeSyncSettingsModal();
+  if (url) {
+    pushToCloud(true);
+  }
+}
+
+async function pushToCloud(showAlert = false) {
+  const url = localStorage.getItem(GAS_URL_KEY);
+  if (!url) return;
+
+  const indicator = document.getElementById('sync-status-indicator');
+  indicator.innerText = "☁️ クラウドに保存中...";
+
+  try {
+    await fetch(url, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(foldersData)
+    });
+
+    indicator.innerText = `☁️ クラウド保存済み (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
+    if (showAlert) alert('クレーン特訓データをスプレッドシートへ送信しました！');
+  } catch (err) {
+    indicator.innerText = "⚠️ クラウド保存に失敗";
+    if (showAlert) alert('クラウド保存に失敗しました。');
+  }
+}
+
+async function syncWithCloud(silent = false) {
+  const url = localStorage.getItem(GAS_URL_KEY);
+  if (!url) {
+    if (!silent) openSyncSettingsModal();
+    return;
+  }
+
+  const indicator = document.getElementById('sync-status-indicator');
+  indicator.innerText = "🔄 クラウドと同期中...";
+
+  try {
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+    const cloudData = await res.json();
+
+    if (Array.isArray(cloudData) && cloudData.length > 0 && cloudData[0].sets) {
+      foldersData = cloudData;
+      saveAllDataToStorage(false);
+      renderFolderSelect();
+      renderSetSelect();
+      loadCurrentSetUI();
+      indicator.innerText = `☁️ 同期完了 (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
+      if (!silent) alert('最新のクレーン特訓データを同期しました！');
+    } else {
+      await pushToCloud(false);
+      indicator.innerText = `☁️ アップロード完了 (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
+      if (!silent) alert('ローカルのデータをスプレッドシートに保存しました！');
+    }
+  } catch (err) {
+    indicator.innerText = "⚠️ 同期に失敗";
+    if (!silent) alert('同期に失敗しました。URLまたはアクセス権限（全員）を確認してください。');
+  }
+}
+</script>
+</body>
+</html>
