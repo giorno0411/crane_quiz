@@ -336,8 +336,8 @@
     line-height: 1.4;
   }
 
-  /* 入力欄 ＆ キーボード切替コントロール */
-  .quiz-input-wrapper {
+  /* 入力欄 ＆ 切替エリア */
+  .quiz-input-container {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -356,17 +356,18 @@
   }
   .keyboard-toggle-group {
     display: flex;
-    gap: 4px;
+    gap: 6px;
   }
   .btn-kb-mode {
     background: #1a1d28;
     color: #94a3b8;
     border: 1px solid #586380;
-    border-radius: 4px;
-    padding: 4px 10px;
+    border-radius: 6px;
+    padding: 5px 12px;
     font-size: 12px;
     cursor: pointer;
     font-weight: bold;
+    transition: all 0.2s;
   }
   .btn-kb-mode.active {
     background: #4255ff;
@@ -374,7 +375,8 @@
     border-color: #4255ff;
   }
 
-  #answer-input {
+  /* Safariのパスワードバーを排除した入力欄デザイン */
+  .custom-quiz-input {
     width: 100%;
     padding: 12px 14px;
     font-size: 17px;
@@ -386,14 +388,15 @@
     outline: none;
     font-family: inherit;
     box-sizing: border-box;
+    -webkit-appearance: none;
   }
-  #answer-input:focus { border-color: #4255ff; }
+  .custom-quiz-input:focus { border-color: #4255ff; }
 
   .btn-submit-answer {
-    background: #4255ff;
+    background: #23c552;
     color: #fff;
     border: none;
-    padding: 12px;
+    padding: 13px;
     border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
@@ -401,7 +404,7 @@
     transition: background 0.2s;
     width: 100%;
   }
-  .btn-submit-answer:hover { background: #2f3ec4; }
+  .btn-submit-answer:active { background: #1ea343; }
 
   .btn {
     background: #4255ff;
@@ -657,29 +660,41 @@
   
   <div class="prompt" id="question-text">---</div>
   
-  <!-- 入力フォームエリア -->
-  <form class="quiz-input-wrapper" onsubmit="event.preventDefault(); handleInput();">
+  <!-- 入力エリア（formタグを排除してSafariのドメインバーを強制非表示） -->
+  <div class="quiz-input-container">
     <div class="keyboard-switch-bar">
-      <span class="keyboard-switch-title">キーボード形式:</span>
+      <span class="keyboard-switch-title">入力キーボード切替:</span>
       <div class="keyboard-toggle-group">
-        <button type="button" class="btn-kb-mode" id="kb-btn-numeric" onclick="setKeyboardMode('numeric')">🔢 数字</button>
-        <button type="button" class="btn-kb-mode" id="kb-btn-text" onclick="setKeyboardMode('text')">🔤 文字</button>
+        <button type="button" class="btn-kb-mode" id="btn-mode-num" onclick="switchInputType('numeric')">🔢 数字</button>
+        <button type="button" class="btn-kb-mode" id="btn-mode-text" onclick="switchInputType('text')">🔤 文字</button>
       </div>
     </div>
 
-    <!-- Safariの自動入力バー消去仕様: autocomplete="new-password" & name="quiz_answer_no_autofill" -->
-    <input type="text" 
-           id="answer-input" 
-           name="quiz_answer_no_autofill"
-           autocomplete="new-password" 
+    <!-- 数字用（テンキー）入力枠 -->
+    <input type="search" 
+           id="input-numeric" 
+           class="custom-quiz-input" 
+           inputmode="decimal" 
+           autocomplete="off" 
            autocorrect="off" 
            autocapitalize="off" 
            spellcheck="false" 
-           enterkeyhint="go" 
-           placeholder="答えを入力してEnterまたは回答ボタン...">
+           placeholder="数値を入力...">
 
-    <button type="submit" class="btn-submit-answer" id="submit-ans-btn">回答する ↵</button>
-  </form>
+    <!-- 文字用（通常キーボード）入力枠 -->
+    <input type="search" 
+           id="input-text" 
+           class="custom-quiz-input hidden" 
+           inputmode="text" 
+           autocomplete="off" 
+           autocorrect="off" 
+           autocapitalize="off" 
+           spellcheck="false" 
+           placeholder="文字・数値を入力...">
+
+    <!-- 目立つ大きな回答ボタン -->
+    <button type="button" class="btn-submit-answer" onclick="handleInput()">回答する（次へ）</button>
+  </div>
   
   <div class="feedback" id="feedback-text"></div>
 </div>
@@ -796,13 +811,25 @@ let currentMode = "def-to-term";
 let saveTimeout = null;
 let currentModalType = null;
 let previousStreakBeforeError = 0;
+let currentActiveInputMode = "numeric";
 
 window.onload = function() {
   initStorage();
   if (localStorage.getItem(GAS_URL_KEY)) {
     syncWithCloud(true);
   }
+
+  // Enterキーで回答処理を実行
+  document.getElementById('input-numeric').addEventListener('keydown', handleKeyEnter);
+  document.getElementById('input-text').addEventListener('keydown', handleKeyEnter);
 };
+
+function handleKeyEnter(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleInput();
+  }
+}
 
 function initStorage() {
   const legacyKeys = [
@@ -1634,22 +1661,35 @@ function isNumericAnswer(str) {
   return cleaned.length === 0;
 }
 
-/* キーボード手動切り替え関数 */
-function setKeyboardMode(mode) {
-  const input = document.getElementById('answer-input');
-  const btnNum = document.getElementById('kb-btn-numeric');
-  const btnText = document.getElementById('kb-btn-text');
+/* 2つの入力枠（数字枠/文字枠）を確実に切り替える関数 */
+function switchInputType(mode) {
+  currentActiveInputMode = mode;
+  const inputNum = document.getElementById('input-numeric');
+  const inputText = document.getElementById('input-text');
+  const btnNum = document.getElementById('btn-mode-num');
+  const btnText = document.getElementById('btn-mode-text');
 
   if (mode === 'numeric') {
-    input.setAttribute('inputmode', 'decimal');
+    inputNum.value = inputText.value;
+    inputText.classList.add('hidden');
+    inputNum.classList.remove('hidden');
     btnNum.classList.add('active');
     btnText.classList.remove('active');
+    inputNum.focus();
   } else {
-    input.setAttribute('inputmode', 'text');
+    inputText.value = inputNum.value;
+    inputNum.classList.add('hidden');
+    inputText.classList.remove('hidden');
     btnText.classList.add('active');
     btnNum.classList.remove('active');
+    inputText.focus();
   }
-  input.focus();
+}
+
+function getActiveInputElement() {
+  return currentActiveInputMode === 'numeric'
+    ? document.getElementById('input-numeric')
+    : document.getElementById('input-text');
 }
 
 function startQuiz() {
@@ -1683,32 +1723,30 @@ function nextQuestion() {
 
   currentItem = activeWords[Math.floor(Math.random() * activeWords.length)];
   retypingMode = false;
-  const input = document.getElementById('answer-input');
 
   const targetAnswer = (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
 
-  // 正解が数字主体の場合は初期状態を「数字」に、それ以外は「文字」に設定
+  // 正解が数字なら初期値を「数字」、文字なら「文字」に自動切替
   if (isNumericAnswer(targetAnswer.trim())) {
-    setKeyboardMode('numeric');
+    switchInputType('numeric');
   } else {
-    setKeyboardMode('text');
+    switchInputType('text');
   }
 
   if (currentMode === 'term-to-def') {
     document.getElementById('question-text').innerText = currentItem.term;
-    input.placeholder = "定義を入力...";
   } else {
     document.getElementById('question-text').innerText = currentItem.def;
-    input.placeholder = "数値を入力...";
   }
   
   document.getElementById('progress-text').innerText = `残り: ${activeWords.length}`;
   document.getElementById('streak-text').innerText = `連続正解: ${currentItem.streak} / 3`;
   
-  input.value = '';
-  input.disabled = false;
-  input.style.borderColor = '#586380';
-  input.focus();
+  const activeInput = getActiveInputElement();
+  activeInput.value = '';
+  activeInput.disabled = false;
+  activeInput.style.borderColor = '#586380';
+  activeInput.focus();
   document.getElementById('feedback-text').innerHTML = '';
 }
 
@@ -1717,8 +1755,8 @@ function getTargetAnswer() {
 }
 
 function handleInput() {
-  const input = document.getElementById('answer-input');
-  const userAns = input.value.trim();
+  const activeInput = getActiveInputElement();
+  const userAns = activeInput.value.trim();
   const targetAns = getTargetAnswer();
   const feedback = document.getElementById('feedback-text');
 
@@ -1729,15 +1767,15 @@ function handleInput() {
       nextQuestion();
     } else {
       currentItem.streak += 1;
-      input.style.borderColor = '#23c552';
+      activeInput.style.borderColor = '#23c552';
       setTimeout(nextQuestion, 200);
     }
   } else {
     previousStreakBeforeError = currentItem.streak;
     currentItem.streak = 0;
     retypingMode = true;
-    input.value = '';
-    input.style.borderColor = '#ff6b6b';
+    activeInput.value = '';
+    activeInput.style.borderColor = '#ff6b6b';
 
     const statusMsg = userAns ? 'ミス！正しく打ち直してください' : '未回答！正解を入力して進んでください';
     const highlightedAns = generateDiffHtml(userAns, targetAns);
@@ -1748,7 +1786,7 @@ function handleInput() {
       正解: <span class="correction">${escapeHtml(targetAns)}</span><br>
       <button type="button" class="override-correct-btn" onclick="overrideAsCorrect()">✓ 私は正解でした（次へ進む）</button>
     `;
-    input.focus();
+    activeInput.focus();
   }
 }
 
