@@ -336,11 +336,12 @@
     line-height: 1.4;
   }
 
-  /* 入力欄 ＆ 送信ボタンエリア */
+  /* フォーム形式にしてスマホのEnter/確定送信を100%保証 */
   .quiz-input-wrapper {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    width: 100%;
   }
   #answer-input {
     width: 100%;
@@ -494,7 +495,6 @@
 
   #print-area { display: none; }
 
-  /* ===== PC向けレイアウト ===== */
   @media (min-width: 500px) {
     body { padding: 20px; }
     .card { padding: 24px; }
@@ -628,11 +628,11 @@
   
   <div class="prompt" id="question-text">---</div>
   
-  <!-- 入力欄 ＆ スマホ用回答ボタン -->
-  <div class="quiz-input-wrapper">
+  <!-- form要素でラップしてEnter・確定・GOキーを確実にキャッチ -->
+  <form class="quiz-input-wrapper" onsubmit="event.preventDefault(); handleInput();">
     <input type="text" id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="答えを入力...">
-    <button type="button" class="btn-submit-answer" id="submit-ans-btn" onclick="handleInput()">回答する ↵</button>
-  </div>
+    <button type="submit" class="btn-submit-answer" id="submit-ans-btn">回答する ↵</button>
+  </form>
   
   <div class="feedback" id="feedback-text"></div>
 </div>
@@ -1581,6 +1581,7 @@ function generateDiffHtml(userAns, targetAns) {
   return html;
 }
 
+/* 解答が数値主体かどうか判定 */
 function isNumericAnswer(str) {
   if (!str) return false;
   const cleaned = str.replace(/[0-9０-９\.\,\-\/\×\x\s]/g, '');
@@ -1622,7 +1623,6 @@ function nextQuestion() {
 
   const targetAnswer = (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
 
-  // 正解が数字主体の場合は decimal（小数点や記号も打ちやすい数字キーボード）
   if (isNumericAnswer(targetAnswer.trim())) {
     input.setAttribute('inputmode', 'decimal');
   } else {
@@ -1646,14 +1646,6 @@ function nextQuestion() {
   input.focus();
   document.getElementById('feedback-text').innerHTML = '';
 }
-
-// Enterキーおよびスマホの確定（Go / 次へ）キーの受付
-document.getElementById('answer-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    handleInput();
-  }
-});
 
 function getTargetAnswer() {
   return (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
