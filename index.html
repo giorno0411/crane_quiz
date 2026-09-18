@@ -335,21 +335,41 @@
     text-align: center;
     line-height: 1.4;
   }
+
+  /* 入力欄 ＆ 送信ボタンエリア */
+  .quiz-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
   #answer-input {
     width: 100%;
-    padding: 10px 12px;
-    font-size: 16px;
+    padding: 12px 14px;
+    font-size: 17px;
     line-height: 1.3;
     border-radius: 8px;
     border: 2px solid #586380;
     background: #1a1d28;
     color: #fff;
     outline: none;
-    resize: none;
-    min-height: 48px;
     font-family: inherit;
+    box-sizing: border-box;
   }
   #answer-input:focus { border-color: #4255ff; }
+
+  .btn-submit-answer {
+    background: #4255ff;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+  .btn-submit-answer:hover { background: #2f3ec4; }
 
   .btn {
     background: #4255ff;
@@ -474,7 +494,7 @@
 
   #print-area { display: none; }
 
-  /* ===== PC向けレイアウト（画面幅500px以上はゆったり表示） ===== */
+  /* ===== PC向けレイアウト ===== */
   @media (min-width: 500px) {
     body { padding: 20px; }
     .card { padding: 24px; }
@@ -486,6 +506,8 @@
     .word-row textarea { font-size: 13px; padding: 8px 10px; min-height: 38px; }
     .mini-btn { width: 28px; height: 38px; font-size: 11px; }
     .prompt { font-size: 24px; }
+    .quiz-input-wrapper { flex-direction: row; }
+    .btn-submit-answer { width: 120px; flex-shrink: 0; }
   }
 
   @media print {
@@ -606,8 +628,11 @@
   
   <div class="prompt" id="question-text">---</div>
   
-  <!-- inputmodeを動的に切り替えてテンキーを自動表示 -->
-  <textarea id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力してEnter..."></textarea>
+  <!-- 入力欄 ＆ スマホ用回答ボタン -->
+  <div class="quiz-input-wrapper">
+    <input type="text" id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="答えを入力...">
+    <button type="button" class="btn-submit-answer" id="submit-ans-btn" onclick="handleInput()">回答する ↵</button>
+  </div>
   
   <div class="feedback" id="feedback-text"></div>
 </div>
@@ -1556,10 +1581,8 @@ function generateDiffHtml(userAns, targetAns) {
   return html;
 }
 
-/* 解答が数値主体かどうか判定 */
 function isNumericAnswer(str) {
   if (!str) return false;
-  // 数字、ピリオド、カンマ、ハイフン、スラッシュ、掛け算記号（×, x）などの組み合わせ
   const cleaned = str.replace(/[0-9０-９\.\,\-\/\×\x\s]/g, '');
   return cleaned.length === 0;
 }
@@ -1599,7 +1622,7 @@ function nextQuestion() {
 
   const targetAnswer = (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
 
-  // 正解が数字主体の場合は自動でテンキー（数値キーボード）を起動
+  // 正解が数字主体の場合は decimal（小数点や記号も打ちやすい数字キーボード）
   if (isNumericAnswer(targetAnswer.trim())) {
     input.setAttribute('inputmode', 'decimal');
   } else {
@@ -1608,10 +1631,10 @@ function nextQuestion() {
 
   if (currentMode === 'term-to-def') {
     document.getElementById('question-text').innerText = currentItem.term;
-    input.placeholder = "定義を入力してEnter...";
+    input.placeholder = "定義を入力...";
   } else {
     document.getElementById('question-text').innerText = currentItem.def;
-    input.placeholder = "数値を入力してEnter...";
+    input.placeholder = "数値を入力...";
   }
   
   document.getElementById('progress-text').innerText = `残り: ${activeWords.length}`;
@@ -1620,20 +1643,16 @@ function nextQuestion() {
   input.value = '';
   input.disabled = false;
   input.style.borderColor = '#586380';
-  autoResize(input);
   input.focus();
   document.getElementById('feedback-text').innerHTML = '';
 }
 
+// Enterキーおよびスマホの確定（Go / 次へ）キーの受付
 document.getElementById('answer-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  if (e.key === 'Enter') {
     e.preventDefault();
     handleInput();
   }
-});
-
-document.getElementById('answer-input').addEventListener('input', function() {
-  autoResize(this);
 });
 
 function getTargetAnswer() {
@@ -1645,6 +1664,8 @@ function handleInput() {
   const userAns = input.value.trim();
   const targetAns = getTargetAnswer();
   const feedback = document.getElementById('feedback-text');
+
+  if (!currentItem) return;
 
   if (userAns && userAns.toLowerCase() === targetAns.toLowerCase()) {
     if (retypingMode) {
@@ -1660,7 +1681,6 @@ function handleInput() {
     retypingMode = true;
     input.value = '';
     input.style.borderColor = '#ff6b6b';
-    autoResize(input);
 
     const statusMsg = userAns ? 'ミス！正しく打ち直してください' : '未回答！正解を入力して進んでください';
     const highlightedAns = generateDiffHtml(userAns, targetAns);
@@ -1671,6 +1691,7 @@ function handleInput() {
       正解: <span class="correction">${escapeHtml(targetAns)}</span><br>
       <button class="override-correct-btn" onclick="overrideAsCorrect()">✓ 私は正解でした（次へ進む）</button>
     `;
+    input.focus();
   }
 }
 
