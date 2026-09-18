@@ -336,13 +336,44 @@
     line-height: 1.4;
   }
 
-  /* フォーム形式にしてスマホのEnter/確定送信を100%保証 */
+  /* 入力欄 ＆ キーボード切替コントロール */
   .quiz-input-wrapper {
     display: flex;
     flex-direction: column;
     gap: 8px;
     width: 100%;
   }
+  .keyboard-switch-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2px;
+  }
+  .keyboard-switch-title {
+    font-size: 11px;
+    color: #939bb4;
+    font-weight: bold;
+  }
+  .keyboard-toggle-group {
+    display: flex;
+    gap: 4px;
+  }
+  .btn-kb-mode {
+    background: #1a1d28;
+    color: #94a3b8;
+    border: 1px solid #586380;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .btn-kb-mode.active {
+    background: #4255ff;
+    color: #fff;
+    border-color: #4255ff;
+  }
+
   #answer-input {
     width: 100%;
     padding: 12px 14px;
@@ -506,8 +537,6 @@
     .word-row textarea { font-size: 13px; padding: 8px 10px; min-height: 38px; }
     .mini-btn { width: 28px; height: 38px; font-size: 11px; }
     .prompt { font-size: 24px; }
-    .quiz-input-wrapper { flex-direction: row; }
-    .btn-submit-answer { width: 120px; flex-shrink: 0; }
   }
 
   @media print {
@@ -628,9 +657,27 @@
   
   <div class="prompt" id="question-text">---</div>
   
-  <!-- form要素でラップしてEnter・確定・GOキーを確実にキャッチ -->
+  <!-- 入力フォームエリア -->
   <form class="quiz-input-wrapper" onsubmit="event.preventDefault(); handleInput();">
-    <input type="text" id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="答えを入力...">
+    <div class="keyboard-switch-bar">
+      <span class="keyboard-switch-title">キーボード形式:</span>
+      <div class="keyboard-toggle-group">
+        <button type="button" class="btn-kb-mode" id="kb-btn-numeric" onclick="setKeyboardMode('numeric')">🔢 数字</button>
+        <button type="button" class="btn-kb-mode" id="kb-btn-text" onclick="setKeyboardMode('text')">🔤 文字</button>
+      </div>
+    </div>
+
+    <!-- Safariの自動入力バー消去仕様: autocomplete="new-password" & name="quiz_answer_no_autofill" -->
+    <input type="text" 
+           id="answer-input" 
+           name="quiz_answer_no_autofill"
+           autocomplete="new-password" 
+           autocorrect="off" 
+           autocapitalize="off" 
+           spellcheck="false" 
+           enterkeyhint="go" 
+           placeholder="答えを入力してEnterまたは回答ボタン...">
+
     <button type="submit" class="btn-submit-answer" id="submit-ans-btn">回答する ↵</button>
   </form>
   
@@ -1581,11 +1628,28 @@ function generateDiffHtml(userAns, targetAns) {
   return html;
 }
 
-/* 解答が数値主体かどうか判定 */
 function isNumericAnswer(str) {
   if (!str) return false;
   const cleaned = str.replace(/[0-9０-９\.\,\-\/\×\x\s]/g, '');
   return cleaned.length === 0;
+}
+
+/* キーボード手動切り替え関数 */
+function setKeyboardMode(mode) {
+  const input = document.getElementById('answer-input');
+  const btnNum = document.getElementById('kb-btn-numeric');
+  const btnText = document.getElementById('kb-btn-text');
+
+  if (mode === 'numeric') {
+    input.setAttribute('inputmode', 'decimal');
+    btnNum.classList.add('active');
+    btnText.classList.remove('active');
+  } else {
+    input.setAttribute('inputmode', 'text');
+    btnText.classList.add('active');
+    btnNum.classList.remove('active');
+  }
+  input.focus();
 }
 
 function startQuiz() {
@@ -1623,10 +1687,11 @@ function nextQuestion() {
 
   const targetAnswer = (currentMode === 'term-to-def') ? currentItem.def : currentItem.term;
 
+  // 正解が数字主体の場合は初期状態を「数字」に、それ以外は「文字」に設定
   if (isNumericAnswer(targetAnswer.trim())) {
-    input.setAttribute('inputmode', 'decimal');
+    setKeyboardMode('numeric');
   } else {
-    input.removeAttribute('inputmode');
+    setKeyboardMode('text');
   }
 
   if (currentMode === 'term-to-def') {
@@ -1681,7 +1746,7 @@ function handleInput() {
       <span class="error-text">${statusMsg}</span><br>
       <div class="user-answer-container">あなたの回答: ${highlightedAns}</div><br>
       正解: <span class="correction">${escapeHtml(targetAns)}</span><br>
-      <button class="override-correct-btn" onclick="overrideAsCorrect()">✓ 私は正解でした（次へ進む）</button>
+      <button type="button" class="override-correct-btn" onclick="overrideAsCorrect()">✓ 私は正解でした（次へ進む）</button>
     `;
     input.focus();
   }
