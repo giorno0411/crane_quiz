@@ -185,21 +185,17 @@
     gap: 8px;
     font-size: 11px;
   }
-  .link-action-trigger {
-    background: transparent;
-    border: none;
+  .link-badge a.direct-link {
     color: #38bdf8;
-    font-size: 11px;
+    text-decoration: underline;
     font-weight: bold;
-    cursor: pointer;
-    padding: 0;
-    max-width: 150px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-decoration: underline;
-    text-align: left;
+    display: inline-block;
   }
+  .link-badge a.direct-link:hover { color: #7dd3fc; }
   .link-badge button.action-btn {
     background: transparent;
     border: none;
@@ -838,29 +834,6 @@ function autoRepairAllLinks() {
   }
 }
 
-function openLinkActionSheet(index) {
-  const cur = getCurrentSet();
-  if (!cur || !cur.links || !cur.links[index]) return;
-  const link = cur.links[index];
-  const fixedUrl = cleanUrlString(link.url);
-
-  let directDriveUrl = fixedUrl;
-  if (fixedUrl.includes('drive.google.com/file/d/')) {
-    directDriveUrl = fixedUrl.replace(/\/view(\?.*)?$/, '/preview');
-  }
-
-  const promptMsg = 
-    `【リンク先を開く】\n` +
-    `タイトル: ${link.title}\n` +
-    `URL: ${fixedUrl}\n\n` +
-    `・「OK」を押すとブラウザで開きます。\n` +
-    `・キャンセルを押すとキャンセルできます。`;
-
-  if (confirm(promptMsg)) {
-    window.open(directDriveUrl, '_blank', 'noopener,noreferrer');
-  }
-}
-
 function initStorage() {
   const legacyKeys = [
     "quizlet_master_data", "quizlet_folders_crane_all_v9", "quizlet_folders_crane_all_v8",
@@ -1047,8 +1020,9 @@ function renderSetLinks() {
     const safeUrl = cleanUrlString(link.url);
     const titleText = escapeHtml(link.title || link.url);
 
+    // ポップアップなし：ダイレクトに別タブで開く標準aタグ
     badge.innerHTML = `
-      <button class="link-action-trigger" onclick="openLinkActionSheet(${idx})">🌐 ${titleText}</button>
+      <a class="direct-link" href="${safeUrl}" target="_blank" rel="noopener noreferrer" title="${safeUrl}">🌐 ${titleText}</a>
       <button class="action-btn" title="URL確認・編集" onclick="renameSetLink(${idx})">✏️</button>
       <button class="action-btn" title="削除" onclick="deleteSetLink(${idx})">✕</button>
     `;
@@ -1080,7 +1054,7 @@ function renameSetLink(index) {
   const newTitle = prompt("リンクの表示名を変更:", currentLink.title);
   if (newTitle === null) return;
 
-  const newUrl = prompt("登録されているURLを確認・変更:\n（※「サーバが見つかりません」となる場合、URLが正しいか確認してください）", currentLink.url);
+  const newUrl = prompt("登録されているURLを確認・変更:", currentLink.url);
   if (newUrl !== null && newUrl.trim()) {
     currentLink.url = cleanUrlString(newUrl);
   }
