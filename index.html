@@ -5,11 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>暗記特訓ツール</title>
 <style>
+  :root {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --accent: #10b981;
+    --accent-hover: #059669;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --input-bg: #0f172a;
+    --box-inner-bg: #131d2e;
+  }
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-    background-color: #0a092d;
-    color: #fff;
+    background-color: var(--bg-color);
+    color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,12 +36,13 @@
     -webkit-text-size-adjust: 100%;
   }
   .card {
-    background: #2e3856;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     padding: 20px;
     border-radius: 12px;
     width: 100%;
     max-width: 680px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   }
   .header-row {
     display: flex;
@@ -33,8 +51,10 @@
     margin-bottom: 12px;
     flex-wrap: wrap;
     gap: 8px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 10px;
   }
-  h2 { margin: 0; font-size: 18px; }
+  h2 { margin: 0; font-size: 18px; font-weight: 700; }
   .header-actions {
     display: flex;
     gap: 6px;
@@ -42,32 +62,33 @@
   }
   .btn-header {
     border: none;
-    padding: 5px 9px;
+    padding: 6px 10px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     color: #fff;
     transition: opacity 0.2s;
   }
   .btn-header:hover { opacity: 0.85; }
-  .btn-sync { background: #23c552; }
-  .btn-settings { background: #586380; }
+  .btn-sync { background: var(--accent); }
+  .btn-settings { background: #475569; }
 
   .save-indicator {
     font-size: 11px;
-    color: #23c552;
+    color: var(--accent);
     opacity: 0;
     transition: opacity 0.3s ease;
+    margin-left: 8px;
   }
 
   .hidden { display: none !important; }
 
   .set-manager {
-    background: #1a1d28;
+    background: var(--box-inner-bg);
     padding: 12px;
     border-radius: 8px;
-    border: 1px solid #586380;
+    border: 1px solid var(--card-border);
     margin-bottom: 12px;
     display: flex;
     flex-direction: column;
@@ -81,7 +102,7 @@
   .hierarchy-label {
     font-size: 11px;
     font-weight: bold;
-    color: #939bb4;
+    color: var(--text-sub);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -98,19 +119,20 @@
     font-size: 13px;
     font-weight: bold;
     border-radius: 6px;
-    border: 1px solid #586380;
-    background: #2e3856;
-    color: #fff;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
+    color: var(--text-main);
     outline: none;
   }
+  select:focus { border-color: var(--primary); }
   .btn-sub-group {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
   }
   .set-action-btn {
-    background: #3b4668;
-    color: #fff;
+    background: #334155;
+    color: var(--text-main);
     border: none;
     padding: 6px 8px;
     border-radius: 5px;
@@ -119,14 +141,14 @@
     transition: background 0.2s;
     white-space: nowrap;
   }
-  .set-action-btn:hover { background: #4c5a85; }
-  .reorder-modal-btn { background: #4255ff; color: #fff; font-weight: bold; }
-  .reorder-modal-btn:hover { background: #2f3ec4; }
-  .pdf-btn { background: #10b981; }
-  .pdf-btn:hover { background: #059669; }
+  .set-action-btn:hover { background: #475569; }
+  .reorder-modal-btn { background: var(--primary); color: #fff; font-weight: bold; }
+  .reorder-modal-btn:hover { background: var(--primary-hover); }
+  .pdf-btn { background: #0ea5e9; color: #fff; }
+  .pdf-btn:hover { opacity: 0.85; }
 
   .link-manager-block {
-    border-top: 1px dashed #3b4668;
+    border-top: 1px dashed var(--card-border);
     padding-top: 8px;
     display: flex;
     flex-direction: column;
@@ -138,7 +160,7 @@
     align-items: center;
   }
   .link-add-btn {
-    background: #23c552;
+    background: var(--accent);
     color: #fff;
     border: none;
     padding: 3px 8px;
@@ -147,14 +169,15 @@
     font-weight: bold;
     cursor: pointer;
   }
+  .link-add-btn:hover { background: var(--accent-hover); }
   .link-list {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
   .link-badge {
-    background: #2e3856;
-    border: 1px solid #586380;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 14px;
     padding: 3px 10px;
     display: flex;
@@ -165,7 +188,7 @@
   .link-action-trigger {
     background: transparent;
     border: none;
-    color: #63b3ed;
+    color: #38bdf8;
     font-size: 11px;
     font-weight: bold;
     cursor: pointer;
@@ -183,8 +206,9 @@
     cursor: pointer;
     padding: 0;
     font-size: 11px;
-    color: #cbd5e1;
+    color: var(--text-sub);
   }
+  .link-badge button.action-btn:hover { color: var(--text-main); }
 
   .word-list-container {
     max-height: 320px;
@@ -202,7 +226,7 @@
     width: 20px;
     font-size: 11px;
     font-weight: bold;
-    color: #939bb4;
+    color: var(--text-sub);
     text-align: center;
     flex-shrink: 0;
   }
@@ -212,9 +236,9 @@
     font-size: 12px;
     line-height: 1.3;
     border-radius: 6px;
-    border: 1px solid #586380;
-    background: #1a1d28;
-    color: #fff;
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--text-main);
     outline: none;
     resize: none;
     min-height: 34px;
@@ -223,7 +247,7 @@
     white-space: pre-wrap;
     word-break: break-word;
   }
-  .word-row textarea:focus { border-color: #4255ff; }
+  .word-row textarea:focus { border-color: var(--primary); }
 
   .row-btn-group {
     display: flex;
@@ -231,9 +255,9 @@
     flex-shrink: 0;
   }
   .mini-btn {
-    background: #3b4668;
-    color: #fff;
-    border: 1px solid #586380;
+    background: #334155;
+    color: var(--text-main);
+    border: 1px solid var(--card-border);
     border-radius: 4px;
     width: 24px;
     height: 34px;
@@ -244,8 +268,10 @@
     align-items: center;
     justify-content: center;
   }
+  .mini-btn:hover { background: #475569; }
   .insert-btn { font-size: 12px; }
-  .del-btn { background: #ff4757; border-color: #ff4757; }
+  .del-btn { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .del-btn:hover { background: var(--danger-hover); }
 
   .sub-actions {
     display: flex;
@@ -256,27 +282,29 @@
   .sub-btn {
     flex: 1;
     min-width: 80px;
-    background: #3b4668;
-    color: #fff;
+    background: #334155;
+    color: var(--text-main);
     border: none;
     padding: 8px 4px;
     border-radius: 6px;
     font-size: 12px;
     cursor: pointer;
+    font-weight: 500;
   }
+  .sub-btn:hover { background: #475569; }
 
   .paste-area {
     margin-bottom: 12px;
-    background: #1a1d28;
+    background: var(--box-inner-bg);
     padding: 8px;
     border-radius: 6px;
-    border: 1px dashed #586380;
+    border: 1px dashed var(--card-border);
   }
   .paste-area textarea {
     width: 100%;
     height: 55px;
     background: transparent;
-    color: #fff;
+    color: var(--text-main);
     border: none;
     outline: none;
     font-size: 12px;
@@ -285,14 +313,14 @@
 
   .setting-box {
     margin: 10px 0 14px 0;
-    background: #1a1d28;
+    background: var(--box-inner-bg);
     padding: 10px;
     border-radius: 6px;
-    border: 1px solid #586380;
+    border: 1px solid var(--card-border);
   }
   .setting-label {
     font-size: 11px;
-    color: #939bb4;
+    color: var(--text-sub);
     margin-bottom: 6px;
     display: block;
     font-weight: bold;
@@ -315,25 +343,27 @@
     justify-content: space-between;
     align-items: center;
     font-size: 12px;
-    color: #939bb4;
+    color: var(--text-sub);
     margin-bottom: 10px;
   }
   .quiz-ctrl-group { display: flex; gap: 4px; }
   .quiz-sub-btn {
-    background: #3b4668;
-    color: #fff;
-    border: 1px solid #586380;
+    background: #334155;
+    color: var(--text-main);
+    border: 1px solid var(--card-border);
     border-radius: 4px;
     padding: 3px 6px;
     font-size: 11px;
     cursor: pointer;
   }
+  .quiz-sub-btn:hover { background: #475569; }
   .prompt {
     font-size: 20px;
     font-weight: bold;
     margin: 15px 0 20px 0;
     text-align: center;
     line-height: 1.4;
+    color: var(--text-main);
   }
 
   .quiz-input-container {
@@ -349,9 +379,9 @@
     font-size: 17px;
     line-height: 1.4;
     border-radius: 8px;
-    border: 2px solid #586380;
-    background: #1a1d28;
-    color: #fff;
+    border: 2px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--text-main);
     outline: none;
     font-family: inherit;
     resize: none;
@@ -359,10 +389,10 @@
     box-sizing: border-box;
     -webkit-appearance: none;
   }
-  #answer-textarea:focus { border-color: #4255ff; }
+  #answer-textarea:focus { border-color: var(--primary); }
 
   .btn-submit-answer {
-    background: #23c552;
+    background: var(--accent);
     color: #fff;
     border: none;
     padding: 13px;
@@ -373,10 +403,10 @@
     transition: background 0.2s;
     width: 100%;
   }
-  .btn-submit-answer:active { background: #1ea343; }
+  .btn-submit-answer:hover { background: var(--accent-hover); }
 
   .btn {
-    background: #4255ff;
+    background: var(--primary);
     color: #fff;
     border: none;
     padding: 11px;
@@ -386,7 +416,10 @@
     font-weight: bold;
     margin-top: 8px;
     width: 100%;
+    transition: background 0.2s;
   }
+  .btn:hover { background: var(--primary-hover); }
+  
   .feedback {
     margin-top: 12px;
     font-size: 13px;
@@ -395,7 +428,7 @@
     line-height: 1.4;
   }
   .override-correct-btn {
-    background: #10b981;
+    background: var(--accent);
     color: #fff;
     border: none;
     padding: 6px 12px;
@@ -405,56 +438,57 @@
     cursor: pointer;
     margin-top: 8px;
   }
-  .error-text { color: #ff6b6b; font-weight: bold; }
+  .error-text { color: var(--danger); font-weight: bold; }
   .user-answer-container {
     color: #cbd5e0;
     font-size: 13px;
     margin: 4px 0;
     display: inline-block;
-    background: #1a1d28;
+    background: var(--input-bg);
     padding: 3px 10px;
     border-radius: 6px;
-    border: 1px solid #3b4668;
+    border: 1px solid var(--card-border);
     font-family: monospace;
   }
-  .char-match { color: #23c552; font-weight: bold; }
-  .char-mismatch { color: #ff6b6b; font-weight: bold; background: rgba(255, 107, 107, 0.15); }
-  .correction { color: #23c552; font-weight: bold; font-size: 16px; }
+  .char-match { color: var(--accent); font-weight: bold; }
+  .char-mismatch { color: var(--danger); font-weight: bold; background: rgba(239, 68, 68, 0.15); }
+  .correction { color: var(--accent); font-weight: bold; font-size: 16px; }
 
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.7);
     display: flex; justify-content: center; align-items: center;
     z-index: 9999;
   }
   .modal-box {
-    background: #2e3856;
-    border: 1px solid #586380;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 12px;
     width: 92%;
     max-width: 580px;
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    padding: 14px;
+    padding: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   }
   .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #586380;
+    border-bottom: 1px solid var(--card-border);
     padding-bottom: 8px;
     margin-bottom: 8px;
   }
-  .modal-header h3 { margin: 0; font-size: 15px; }
+  .modal-header h3 { margin: 0; font-size: 15px; font-weight: 700; }
   .modal-action-bar { margin-bottom: 8px; }
   .modal-add-btn {
-    background: #23c552; color: #fff; border: none;
+    background: var(--accent); color: #fff; border: none;
     padding: 7px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;
     cursor: pointer; width: 100%;
   }
+  .modal-add-btn:hover { background: var(--accent-hover); }
   .modal-list {
     overflow-y: auto;
     flex: 1;
@@ -467,32 +501,34 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #1a1d28;
+    background: var(--input-bg);
     padding: 6px 8px;
     border-radius: 6px;
-    border: 1px solid #3b4668;
+    border: 1px solid var(--card-border);
     gap: 6px;
   }
-  .modal-item.active-item { border-color: #4255ff; background: #232838; }
+  .modal-item.active-item { border-color: var(--primary); background: #172554; }
   .modal-item-title { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   .modal-item-btns { display: flex; gap: 3px; flex-shrink: 0; }
   .item-arrow-btn {
-    background: #3b4668; color: #fff; border: none; border-radius: 4px;
+    background: #334155; color: var(--text-main); border: none; border-radius: 4px;
     width: 26px; height: 26px; cursor: pointer; font-size: 10px;
     display: flex; align-items: center; justify-content: center;
   }
-  .item-insert-btn { background: #23c552; font-weight: bold; }
-  .item-del-btn { background: #ff4757; }
+  .item-arrow-btn:hover { background: #475569; }
+  .item-insert-btn { background: var(--accent); color: #fff; font-weight: bold; }
+  .item-del-btn { background: var(--danger); color: #fff; }
 
   .sync-modal-input {
     width: 100%; padding: 8px 10px; font-size: 13px;
-    border-radius: 6px; border: 1px solid #586380;
-    background: #1a1d28; color: #fff; outline: none; margin: 8px 0 14px 0;
+    border-radius: 6px; border: 1px solid var(--card-border);
+    background: var(--input-bg); color: var(--text-main); outline: none; margin: 8px 0 14px 0;
   }
+  .sync-modal-input:focus { border-color: var(--primary); }
 
   .footer-sync-info {
-    margin-top: 12px; padding-top: 8px; border-top: 1px solid #3b4668;
-    font-size: 11px; color: #939bb4; text-align: center;
+    margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--card-border);
+    font-size: 11px; color: var(--text-sub); text-align: center;
   }
 
   #print-area { display: none; }
@@ -551,7 +587,7 @@
           <button class="set-action-btn reorder-modal-btn" onclick="openReorderModal('folder')">↕ 整理</button>
           <button class="set-action-btn" onclick="createNewFolder()">＋ 作成</button>
           <button class="set-action-btn" onclick="renameCurrentFolder()">✏️</button>
-          <button class="set-action-btn" style="color:#ff6b6b;" onclick="deleteCurrentFolder()">🗑️</button>
+          <button class="set-action-btn" style="color:var(--danger);" onclick="deleteCurrentFolder()">🗑️</button>
         </div>
       </div>
     </div>
@@ -566,7 +602,7 @@
           <button class="set-action-btn" onclick="renameCurrentSet()">✏️</button>
           <button class="set-action-btn" onclick="moveCurrentSet()">⇄ 移動</button>
           <button class="set-action-btn pdf-btn" onclick="exportToPDF()">📄 PDF</button>
-          <button class="set-action-btn" style="color:#ff6b6b;" onclick="deleteCurrentSet()">🗑️</button>
+          <button class="set-action-btn" style="color:var(--danger);" onclick="deleteCurrentSet()">🗑️</button>
         </div>
       </div>
     </div>
@@ -585,14 +621,14 @@
   <div class="sub-actions">
     <button class="sub-btn" onclick="prependRow()">⬆ 先頭</button>
     <button class="sub-btn" onclick="addRow('', '', null, true)">⬇ 末尾</button>
-    <button class="sub-btn reorder-modal-btn" style="background:#4255ff;" onclick="openReorderModal('word')">↕ 単語整理</button>
+    <button class="sub-btn reorder-modal-btn" onclick="openReorderModal('word')">↕ 単語整理</button>
     <button class="sub-btn" onclick="togglePasteArea()">📋 貼付</button>
-    <button class="sub-btn" style="color: #ff6b6b;" onclick="clearAllRows()">全消去</button>
+    <button class="sub-btn" style="color: var(--danger);" onclick="clearAllRows()">全消去</button>
   </div>
 
   <div class="paste-area hidden" id="paste-area">
     <textarea id="bulk-paste-input" placeholder="Excel等から「定義 [タブ] 用語」を貼り付け"></textarea>
-    <button class="sub-btn" style="width: 100%; margin-top: 5px; background: #4255ff;" onclick="applyBulkPaste()">反映する</button>
+    <button class="sub-btn" style="width: 100%; margin-top: 5px; background: var(--primary);" onclick="applyBulkPaste()">反映する</button>
   </div>
 
   <div class="setting-box">
@@ -644,10 +680,10 @@
 </div>
 
 <div class="card hidden" id="result-screen">
-  <h2 style="text-align: center; color: #23c552;">🎉 完全マスター達成！</h2>
-  <p style="text-align: center; font-size:14px;">すべての項目で3連続正解を達成しました！</p>
+  <h2 style="text-align: center; color: var(--accent);">🎉 完全マスター達成！</h2>
+  <p style="text-align: center; font-size:14px; color: var(--text-sub);">すべての項目で3連続正解を達成しました！</p>
   <button class="btn" onclick="restartQuiz()">もう一度最初から特訓する</button>
-  <button class="btn" style="background: #586380; margin-top: 10px;" onclick="backToSetup()">セット・モードを変更する</button>
+  <button class="btn" style="background: #334155; margin-top: 10px;" onclick="backToSetup()">セット・モードを変更する</button>
 </div>
 
 <div class="modal-overlay hidden" id="reorder-modal">
@@ -658,7 +694,7 @@
     </div>
     <div class="modal-action-bar" id="modal-action-bar"></div>
     <div class="modal-list" id="modal-item-list"></div>
-    <button class="sub-btn" style="background:#4255ff; padding:8px;" onclick="closeReorderModal()">完了</button>
+    <button class="sub-btn" style="background: var(--primary); padding:8px;" onclick="closeReorderModal()">完了</button>
   </div>
 </div>
 
@@ -668,13 +704,13 @@
       <h3>⚙️ クラウド同期設定</h3>
       <button class="mini-btn del-btn" style="height:26px; width:26px;" onclick="closeSyncSettingsModal()">✕</button>
     </div>
-    <p style="font-size: 12px; color: #939bb4; line-height: 1.5; margin: 0 0 8px 0;">
+    <p style="font-size: 12px; color: var(--text-sub); line-height: 1.5; margin: 0 0 8px 0;">
       Google Apps Scriptで発行した「ウェブアプリのURL」を貼り付けてください。
     </p>
     <input type="text" id="crane-gas-url-input" class="sync-modal-input" placeholder="https://script.google.com/macros/s/.../exec">
     <div style="display:flex; justify-content:flex-end; gap:8px;">
       <button class="sub-btn" style="flex:none; padding:8px 12px;" onclick="closeSyncSettingsModal()">キャンセル</button>
-      <button class="sub-btn" style="flex:none; padding:8px 14px; background:#23c552;" onclick="saveSyncSettings()">保存する</button>
+      <button class="sub-btn" style="flex:none; padding:8px 14px; background: var(--accent); color: #fff;" onclick="saveSyncSettings()">保存する</button>
     </div>
   </div>
 </div>
@@ -771,18 +807,14 @@ window.onload = function() {
   });
 };
 
-// URLの重複や余計な文字を徹底除去・正常化する関数
 function cleanUrlString(raw) {
   if (!raw) return "";
   let str = raw.trim();
-  // 全角スペースや制御文字を除去
   str = str.replace(/[\u3000\s]+/g, "");
-  // 重複した http/https プレフィックスを剥がす
   str = str.replace(/^(https?:\/\/)+/gi, "");
   return "https://" + str;
 }
 
-// 登録済みリンク全体の自動修復
 function autoRepairAllLinks() {
   let changed = false;
   foldersData.forEach(folder => {
@@ -806,14 +838,12 @@ function autoRepairAllLinks() {
   }
 }
 
-// リンククリック時の安全な遷移ダイアログ
 function openLinkActionSheet(index) {
   const cur = getCurrentSet();
   if (!cur || !cur.links || !cur.links[index]) return;
   const link = cur.links[index];
   const fixedUrl = cleanUrlString(link.url);
 
-  // Googleドライブ等の閲覧リンク最適化
   let directDriveUrl = fixedUrl;
   if (fixedUrl.includes('drive.google.com/file/d/')) {
     directDriveUrl = fixedUrl.replace(/\/view(\?.*)?$/, '/preview');
@@ -827,7 +857,6 @@ function openLinkActionSheet(index) {
     `・キャンセルを押すとキャンセルできます。`;
 
   if (confirm(promptMsg)) {
-    // 新規タブで開く
     window.open(directDriveUrl, '_blank', 'noopener,noreferrer');
   }
 }
@@ -1007,7 +1036,7 @@ function renderSetLinks() {
   container.innerHTML = '';
   const cur = getCurrentSet();
   if (!cur || !cur.links || cur.links.length === 0) {
-    container.innerHTML = '<span style="color:#6b7280; font-size:11px;">登録されたリンクはありません</span>';
+    container.innerHTML = '<span style="color:var(--text-sub); font-size:11px;">登録されたリンクはありません</span>';
     return;
   }
 
@@ -1132,7 +1161,7 @@ function renderModalItems() {
   }
 
   if (!items || items.length === 0) {
-    list.innerHTML = '<div style="text-align:center; color:#939bb4; padding:20px 0;">項目がありません</div>';
+    list.innerHTML = '<div style="text-align:center; color:var(--text-sub); padding:20px 0;">項目がありません</div>';
     return;
   }
 
@@ -1711,7 +1740,7 @@ function nextQuestion() {
   const ta = document.getElementById('answer-textarea');
   ta.value = '';
   ta.disabled = false;
-  ta.style.borderColor = '#586380';
+  ta.style.borderColor = 'var(--card-border)';
   ta.focus();
   document.getElementById('feedback-text').innerHTML = '';
 }
@@ -1733,7 +1762,7 @@ function handleInput() {
       nextQuestion();
     } else {
       currentItem.streak += 1;
-      ta.style.borderColor = '#23c552';
+      ta.style.borderColor = 'var(--accent)';
       setTimeout(nextQuestion, 200);
     }
   } else {
@@ -1741,7 +1770,7 @@ function handleInput() {
     currentItem.streak = 0;
     retypingMode = true;
     ta.value = '';
-    ta.style.borderColor = '#ff6b6b';
+    ta.style.borderColor = 'var(--danger)';
 
     const statusMsg = userAns ? 'ミス！正しく打ち直してください' : '未回答！正解を入力して進んでください';
     const highlightedAns = generateDiffHtml(userAns, targetAns);
