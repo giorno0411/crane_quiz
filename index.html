@@ -156,24 +156,22 @@
     background: #2e3856;
     border: 1px solid #586380;
     border-radius: 14px;
-    padding: 2px 8px;
+    padding: 3px 10px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 11px;
   }
-  .link-click-btn {
-    background: transparent;
-    border: none;
+  .link-badge a.link-title {
     color: #63b3ed;
-    cursor: pointer;
-    font-size: 11px;
-    padding: 0;
-    max-width: 140px;
+    text-decoration: none;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-align: left;
+    font-weight: 500;
+  }
+  .link-badge a.link-title:hover {
     text-decoration: underline;
   }
   .link-badge button.action-btn {
@@ -773,26 +771,26 @@ window.onload = function() {
 function sanitizeAndNormalizeUrl(rawUrl) {
   if (!rawUrl) return "";
   let url = rawUrl.trim();
-  // 連続したプロトコルや不自然なプレフィックスを除去・補正
-  url = url.replace(/^(https?:\/\/)+/i, "https://");
-  if (!/^https?:\/\//i.test(url)) {
-    url = "https://" + url;
-  }
+  // 連続したプロトコルや不要なスペースを完全除去
+  url = url.replace(/^(https?:\/\/)+/gi, "");
+  url = "https://" + url;
   return url;
 }
 
-function openExternalLink(rawUrl) {
+function handleLinkClick(e, rawUrl) {
+  // 通常のタップ/クリック時にURLを開く
   const url = sanitizeAndNormalizeUrl(rawUrl);
-  if (!url) {
-    alert("URLが指定されていません。");
+  if (!url) return;
+
+  // Google Driveのファイルでプレビュー時に詰まるのを回避
+  if (url.includes('drive.google.com/file/d/')) {
+    const directView = url.replace(/\/view(\?.*)?$/, '/preview');
+    window.open(directView, '_blank', 'noopener,noreferrer');
     return;
   }
-  try {
-    const parsed = new URL(url);
-    window.open(parsed.href, '_blank', 'noopener,noreferrer');
-  } catch (e) {
-    alert("無効なURL形式です: " + rawUrl);
-  }
+
+  // 通常リンク
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function initStorage() {
@@ -977,24 +975,15 @@ function renderSetLinks() {
     const badge = document.createElement('div');
     badge.className = 'link-badge';
 
-    const openBtn = document.createElement('button');
-    openBtn.className = 'link-click-btn';
-    openBtn.textContent = `🌐 ${link.title || link.url}`;
-    openBtn.onclick = () => openExternalLink(link.url);
+    const safeUrl = sanitizeAndNormalizeUrl(link.url);
+    const titleText = escapeHtml(link.title || link.url);
 
-    const editBtn = document.createElement('button');
-    editBtn.className = 'action-btn';
-    editBtn.textContent = '✏️';
-    editBtn.onclick = () => renameSetLink(idx);
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'action-btn';
-    delBtn.textContent = '✕';
-    delBtn.onclick = () => deleteSetLink(idx);
-
-    badge.appendChild(openBtn);
-    badge.appendChild(editBtn);
-    badge.appendChild(delBtn);
+    // 通常のアンカータグ＋安全なフォールバック
+    badge.innerHTML = `
+      <a class="link-title" href="${safeUrl}" target="_blank" rel="noopener noreferrer" title="${safeUrl}">🌐 ${titleText}</a>
+      <button class="action-btn" title="URL確認・編集" onclick="renameSetLink(${idx})">✏️</button>
+      <button class="action-btn" title="削除" onclick="deleteSetLink(${idx})">✕</button>
+    `;
     container.appendChild(badge);
   });
 }
@@ -1006,7 +995,7 @@ function addSetLink() {
 
   const title = prompt("リンクの表示名（例: カタログ、仕様書PDF）:", "");
   if (title === null) return;
-  let url = prompt("リンク先URL（https://...）:", "https://");
+  let url = prompt("リンク先URLを貼り付けてください:", "");
   if (!url || !url.trim()) return;
 
   const cleanUrl = sanitizeAndNormalizeUrl(url);
@@ -1019,10 +1008,11 @@ function renameSetLink(index) {
   const cur = getCurrentSet();
   if (!cur || !cur.links || !cur.links[index]) return;
   const currentLink = cur.links[index];
+  
   const newTitle = prompt("リンクの表示名を変更:", currentLink.title);
   if (newTitle === null) return;
-  
-  const newUrl = prompt("リンク先URLを変更:", currentLink.url);
+
+  const newUrl = prompt("リンク先URLを確認・変更:\n（※「サーバが見つかりません」となる場合、URLが正しいか確認してください）", currentLink.url);
   if (newUrl !== null && newUrl.trim()) {
     currentLink.url = sanitizeAndNormalizeUrl(newUrl);
   }
