@@ -162,17 +162,20 @@
     gap: 8px;
     font-size: 11px;
   }
-  .link-badge a.link-title {
+  .link-action-trigger {
+    background: transparent;
+    border: none;
     color: #63b3ed;
-    text-decoration: none;
-    max-width: 160px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
-  }
-  .link-badge a.link-title:hover {
     text-decoration: underline;
+    text-align: left;
   }
   .link-badge button.action-btn {
     background: transparent;
@@ -768,29 +771,65 @@ window.onload = function() {
   });
 };
 
-function sanitizeAndNormalizeUrl(rawUrl) {
-  if (!rawUrl) return "";
-  let url = rawUrl.trim();
-  // 連続したプロトコルや不要なスペースを完全除去
-  url = url.replace(/^(https?:\/\/)+/gi, "");
-  url = "https://" + url;
-  return url;
+// URLの重複や余計な文字を徹底除去・正常化する関数
+function cleanUrlString(raw) {
+  if (!raw) return "";
+  let str = raw.trim();
+  // 全角スペースや制御文字を除去
+  str = str.replace(/[\u3000\s]+/g, "");
+  // 重複した http/https プレフィックスを剥がす
+  str = str.replace(/^(https?:\/\/)+/gi, "");
+  return "https://" + str;
 }
 
-function handleLinkClick(e, rawUrl) {
-  // 通常のタップ/クリック時にURLを開く
-  const url = sanitizeAndNormalizeUrl(rawUrl);
-  if (!url) return;
+// 登録済みリンク全体の自動修復
+function autoRepairAllLinks() {
+  let changed = false;
+  foldersData.forEach(folder => {
+    if (folder.sets) {
+      folder.sets.forEach(set => {
+        if (set.links && Array.isArray(set.links)) {
+          set.links.forEach(l => {
+            const original = l.url;
+            const fixed = cleanUrlString(l.url);
+            if (original !== fixed) {
+              l.url = fixed;
+              changed = true;
+            }
+          });
+        }
+      });
+    }
+  });
+  if (changed) {
+    saveAllDataToStorage(false);
+  }
+}
 
-  // Google Driveのファイルでプレビュー時に詰まるのを回避
-  if (url.includes('drive.google.com/file/d/')) {
-    const directView = url.replace(/\/view(\?.*)?$/, '/preview');
-    window.open(directView, '_blank', 'noopener,noreferrer');
-    return;
+// リンククリック時の安全な遷移ダイアログ
+function openLinkActionSheet(index) {
+  const cur = getCurrentSet();
+  if (!cur || !cur.links || !cur.links[index]) return;
+  const link = cur.links[index];
+  const fixedUrl = cleanUrlString(link.url);
+
+  // Googleドライブ等の閲覧リンク最適化
+  let directDriveUrl = fixedUrl;
+  if (fixedUrl.includes('drive.google.com/file/d/')) {
+    directDriveUrl = fixedUrl.replace(/\/view(\?.*)?$/, '/preview');
   }
 
-  // 通常リンク
-  window.open(url, '_blank', 'noopener,noreferrer');
+  const promptMsg = 
+    `【リンク先を開く】\n` +
+    `タイトル: ${link.title}\n` +
+    `URL: ${fixedUrl}\n\n` +
+    `・「OK」を押すとブラウザで開きます。\n` +
+    `・キャンセルを押すとキャンセルできます。`;
+
+  if (confirm(promptMsg)) {
+    // 新規タブで開く
+    window.open(directDriveUrl, '_blank', 'noopener,noreferrer');
+  }
 }
 
 function initStorage() {
@@ -877,6 +916,7 @@ function initStorage() {
     });
   }
 
+  autoRepairAllLinks();
   saveAllDataToStorage(false);
 
   const savedFolderId = localStorage.getItem(STORAGE_KEY_ACTIVE_FOLDER_ID);
@@ -975,12 +1015,11 @@ function renderSetLinks() {
     const badge = document.createElement('div');
     badge.className = 'link-badge';
 
-    const safeUrl = sanitizeAndNormalizeUrl(link.url);
+    const safeUrl = cleanUrlString(link.url);
     const titleText = escapeHtml(link.title || link.url);
 
-    // 通常のアンカータグ＋安全なフォールバック
     badge.innerHTML = `
-      <a class="link-title" href="${safeUrl}" target="_blank" rel="noopener noreferrer" title="${safeUrl}">🌐 ${titleText}</a>
+      <button class="link-action-trigger" onclick="openLinkActionSheet(${idx})">🌐 ${titleText}</button>
       <button class="action-btn" title="URL確認・編集" onclick="renameSetLink(${idx})">✏️</button>
       <button class="action-btn" title="削除" onclick="deleteSetLink(${idx})">✕</button>
     `;
@@ -995,11 +1034,11 @@ function addSetLink() {
 
   const title = prompt("リンクの表示名（例: カタログ、仕様書PDF）:", "");
   if (title === null) return;
-  let url = prompt("リンク先URLを貼り付けてください:", "");
+  let url = prompt("リンク先URLを貼り付けてください:\n（※「https://」の入力は不要です）", "");
   if (!url || !url.trim()) return;
 
-  const cleanUrl = sanitizeAndNormalizeUrl(url);
-  cur.links.push({ title: title.trim() || cleanUrl, url: cleanUrl });
+  const clean = cleanUrlString(url);
+  cur.links.push({ title: title.trim() || clean, url: clean });
   saveAllDataToStorage(true);
   renderSetLinks();
 }
@@ -1012,9 +1051,9 @@ function renameSetLink(index) {
   const newTitle = prompt("リンクの表示名を変更:", currentLink.title);
   if (newTitle === null) return;
 
-  const newUrl = prompt("リンク先URLを確認・変更:\n（※「サーバが見つかりません」となる場合、URLが正しいか確認してください）", currentLink.url);
+  const newUrl = prompt("登録されているURLを確認・変更:\n（※「サーバが見つかりません」となる場合、URLが正しいか確認してください）", currentLink.url);
   if (newUrl !== null && newUrl.trim()) {
-    currentLink.url = sanitizeAndNormalizeUrl(newUrl);
+    currentLink.url = cleanUrlString(newUrl);
   }
   currentLink.title = newTitle.trim() || currentLink.url;
 
@@ -1789,6 +1828,7 @@ async function syncWithCloud(silent = false) {
 
     if (Array.isArray(cloudData) && cloudData.length > 0 && cloudData[0].sets) {
       foldersData = cloudData;
+      autoRepairAllLinks();
       saveAllDataToStorage(false);
       renderFolderSelect();
       renderSetSelect();
