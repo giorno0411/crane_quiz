@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>クレーンスペック特訓ツール（ラフター＆オルター最新版）</title>
+<title>暗記特訓ツール</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -63,7 +63,6 @@
 
   .hidden { display: none !important; }
 
-  /* 階層セット管理エリア */
   .set-manager {
     background: #1a1d28;
     padding: 12px;
@@ -126,7 +125,6 @@
   .pdf-btn { background: #10b981; }
   .pdf-btn:hover { background: #059669; }
 
-  /* 参考リンクエリア */
   .link-manager-block {
     border-top: 1px dashed #3b4668;
     padding-top: 8px;
@@ -181,7 +179,6 @@
     color: #cbd5e1;
   }
 
-  /* 単語入力グリッド */
   .word-list-container {
     max-height: 320px;
     overflow-y: auto;
@@ -221,7 +218,6 @@
   }
   .word-row textarea:focus { border-color: #4255ff; }
 
-  /* 行アクションボタン */
   .row-btn-group {
     display: flex;
     gap: 2px;
@@ -262,7 +258,6 @@
     cursor: pointer;
   }
 
-  /* 一括貼り付けエリア */
   .paste-area {
     margin-bottom: 12px;
     background: #1a1d28;
@@ -281,7 +276,6 @@
     resize: none;
   }
 
-  /* 設定エリア */
   .setting-box {
     margin: 10px 0 14px 0;
     background: #1a1d28;
@@ -309,7 +303,6 @@
     cursor: pointer;
   }
 
-  /* クイズ画面 */
   .status {
     display: flex;
     justify-content: space-between;
@@ -336,7 +329,6 @@
     line-height: 1.4;
   }
 
-  /* クイズ入力コンテナ */
   .quiz-input-container {
     display: flex;
     flex-direction: column;
@@ -344,7 +336,6 @@
     width: 100%;
   }
 
-  /* textareaを使うことでSafariのパスワード・ドメイン候補バーを100%完全消去 */
   #answer-textarea {
     width: 100%;
     padding: 12px 14px;
@@ -423,7 +414,6 @@
   .char-mismatch { color: #ff6b6b; font-weight: bold; background: rgba(255, 107, 107, 0.15); }
   .correction { color: #23c552; font-weight: bold; font-size: 16px; }
 
-  /* モーダル共通 */
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
@@ -536,7 +526,7 @@
 <div class="card" id="setup-screen">
   <div class="header-row">
     <div>
-      <h2>筆記特訓</h2>
+      <h2>暗記特訓ツール</h2>
       <span class="save-indicator" id="save-indicator">✓ 保存済み</span>
     </div>
     <div class="header-actions">
@@ -631,7 +621,6 @@
   
   <div class="prompt" id="question-text">---</div>
   
-  <!-- 入力エリア（textareaによりパスワード自動入力バーを完全排除） -->
   <div class="quiz-input-container">
     <textarea id="answer-textarea" 
               autocomplete="off" 
@@ -641,7 +630,6 @@
               enterkeyhint="go" 
               placeholder="答えを入力してEnterまたは下のボタン..."></textarea>
 
-    <!-- タップで確実に進む回答ボタン -->
     <button type="button" class="btn-submit-answer" onclick="handleInput()">回答する（次へ） ↵</button>
   </div>
   
@@ -767,7 +755,6 @@ window.onload = function() {
     syncWithCloud(true);
   }
 
-  // Enterキーを押したときの回答処理（改行を防いで即送信）
   const ta = document.getElementById('answer-textarea');
   ta.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -946,7 +933,6 @@ function switchSet(newSetId) {
   loadCurrentSetUI();
 }
 
-/* 参考リンク */
 function renderSetLinks() {
   const container = document.getElementById('link-list-container');
   container.innerHTML = '';
@@ -1003,7 +989,6 @@ function deleteSetLink(index) {
   renderSetLinks();
 }
 
-/* モーダル */
 function openReorderModal(type) {
   saveCurrentSet(false);
   currentModalType = type;
@@ -1710,7 +1695,6 @@ function backToSetup() {
   loadCurrentSetUI();
 }
 
-/* クラウド同期 */
 function openSyncSettingsModal() {
   document.getElementById('crane-gas-url-input').value = localStorage.getItem(GAS_URL_KEY) || "";
   document.getElementById('sync-settings-modal').classList.remove('hidden');
@@ -1741,7 +1725,7 @@ async function pushToCloud(showAlert = false) {
       body: JSON.stringify(foldersData)
     });
     indicator.innerText = `☁️ クラウド保存済み (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
-    if (showAlert) alert('クレーン特訓データをスプレッドシートへ送信しました！');
+    if (showAlert) alert('データをスプレッドシートへ送信しました！');
   } catch (err) {
     indicator.innerText = "⚠️ クラウド保存に失敗";
     if (showAlert) alert('クラウド保存に失敗しました。');
@@ -1768,7 +1752,7 @@ async function syncWithCloud(silent = false) {
       renderSetSelect();
       loadCurrentSetUI();
       indicator.innerText = `☁️ 同期完了 (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
-      if (!silent) alert('最新のクレーン特訓データを同期しました！');
+      if (!silent) alert('最新のデータを同期しました！');
     } else {
       await pushToCloud(false);
       indicator.innerText = `☁️ アップロード完了 (${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })})`;
