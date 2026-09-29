@@ -162,15 +162,21 @@
     gap: 6px;
     font-size: 11px;
   }
-  .link-badge a {
+  .link-click-btn {
+    background: transparent;
+    border: none;
     color: #63b3ed;
-    text-decoration: none;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
     max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
+    text-decoration: underline;
   }
-  .link-badge button {
+  .link-badge button.action-btn {
     background: transparent;
     border: none;
     cursor: pointer;
@@ -764,6 +770,31 @@ window.onload = function() {
   });
 };
 
+function sanitizeAndNormalizeUrl(rawUrl) {
+  if (!rawUrl) return "";
+  let url = rawUrl.trim();
+  // 連続したプロトコルや不自然なプレフィックスを除去・補正
+  url = url.replace(/^(https?:\/\/)+/i, "https://");
+  if (!/^https?:\/\//i.test(url)) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
+function openExternalLink(rawUrl) {
+  const url = sanitizeAndNormalizeUrl(rawUrl);
+  if (!url) {
+    alert("URLが指定されていません。");
+    return;
+  }
+  try {
+    const parsed = new URL(url);
+    window.open(parsed.href, '_blank', 'noopener,noreferrer');
+  } catch (e) {
+    alert("無効なURL形式です: " + rawUrl);
+  }
+}
+
 function initStorage() {
   const legacyKeys = [
     "quizlet_master_data", "quizlet_folders_crane_all_v9", "quizlet_folders_crane_all_v8",
@@ -945,11 +976,25 @@ function renderSetLinks() {
   cur.links.forEach((link, idx) => {
     const badge = document.createElement('div');
     badge.className = 'link-badge';
-    badge.innerHTML = `
-      <a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">🌐 ${escapeHtml(link.title || link.url)}</a>
-      <button onclick="renameSetLink(${idx})">✏️</button>
-      <button onclick="deleteSetLink(${idx})">✕</button>
-    `;
+
+    const openBtn = document.createElement('button');
+    openBtn.className = 'link-click-btn';
+    openBtn.textContent = `🌐 ${link.title || link.url}`;
+    openBtn.onclick = () => openExternalLink(link.url);
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-btn';
+    editBtn.textContent = '✏️';
+    editBtn.onclick = () => renameSetLink(idx);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'action-btn';
+    delBtn.textContent = '✕';
+    delBtn.onclick = () => deleteSetLink(idx);
+
+    badge.appendChild(openBtn);
+    badge.appendChild(editBtn);
+    badge.appendChild(delBtn);
     container.appendChild(badge);
   });
 }
@@ -964,7 +1009,8 @@ function addSetLink() {
   let url = prompt("リンク先URL（https://...）:", "https://");
   if (!url || !url.trim()) return;
 
-  cur.links.push({ title: title.trim() || url.trim(), url: url.trim() });
+  const cleanUrl = sanitizeAndNormalizeUrl(url);
+  cur.links.push({ title: title.trim() || cleanUrl, url: cleanUrl });
   saveAllDataToStorage(true);
   renderSetLinks();
 }
@@ -975,7 +1021,13 @@ function renameSetLink(index) {
   const currentLink = cur.links[index];
   const newTitle = prompt("リンクの表示名を変更:", currentLink.title);
   if (newTitle === null) return;
+  
+  const newUrl = prompt("リンク先URLを変更:", currentLink.url);
+  if (newUrl !== null && newUrl.trim()) {
+    currentLink.url = sanitizeAndNormalizeUrl(newUrl);
+  }
   currentLink.title = newTitle.trim() || currentLink.url;
+
   saveAllDataToStorage(true);
   renderSetLinks();
 }
